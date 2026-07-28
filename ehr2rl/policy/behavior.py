@@ -14,6 +14,7 @@ class BehaviorPolicy:
     """Estimate observed action probabilities from states."""
 
     def __init__(self, n_action_bins: int = 5, random_state: int = 42) -> None:
+        # TODO(v0.2): replace placeholder actions with real medication actions.
         self.n_action_bins = n_action_bins
         self.random_state = random_state
         self.discretizer: KBinsDiscretizer | None = None
@@ -42,6 +43,8 @@ class BehaviorPolicy:
         return self.model.predict_proba(np.asarray(states, dtype=float))
 
     def propensity_scores(self, dataset: EHRDataset) -> np.ndarray:
+        if self.model is None:
+            raise ValueError("BehaviorPolicy must be fit before propensity_scores().")
         states, actions = self._stack(dataset)
         labels = self._labels_from_actions(actions, fit=False)
         probabilities = self.predict_proba(states)

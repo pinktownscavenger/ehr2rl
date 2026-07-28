@@ -22,7 +22,7 @@ basic rewards, a simple behavior policy estimator, and a first `d3rlpy` export.
 
 ## Installation
 
-`ehr2rl` targets Python 3.14+.
+`ehr2rl` targets Python 3.10+.
 
 From a local checkout:
 
