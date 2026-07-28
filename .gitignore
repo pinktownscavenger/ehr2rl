@@ -1,0 +1,31 @@
+private/
+
+# Local OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python environments and caches
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+
+# Notebook and local data artifacts
+.ipynb_checkpoints/
+data/
+local_data/
+mimic-iv/
+*.csv.gz

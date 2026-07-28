@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ehr2rl"
+version = "0.1.0"
+description = "Convert MIMIC-IV-style EHR data into offline reinforcement learning datasets."
+readme = "README.md"
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [
+  { name = "ehr2rl contributors" }
+]
+keywords = ["ehr", "healthcare", "offline-rl", "reinforcement-learning", "mimic-iv"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scikit-learn>=1.3",
+  "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+d3rlpy = ["d3rlpy>=2.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=24.0", "ruff>=0.4", "mypy>=1.8"]
+all = ["d3rlpy>=2.0"]
+
+[project.urls]
+Homepage = "https://github.com/pinktownscavenger/ehr2rl"
+Repository = "https://github.com/pinktownscavenger/ehr2rl"
+Issues = "https://github.com/pinktownscavenger/ehr2rl/issues"
+
+[tool.setuptools.packages.find]
+include = ["ehr2rl*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.mypy]
+python_version = "3.14"
+packages = ["ehr2rl"]
+ignore_missing_imports = true
