@@ -74,6 +74,11 @@ mypy ehr2rl
 obtain any clinical data through the appropriate credentialed channels, such as
 PhysioNet, and comply with the applicable data use agreements.
 
+## Known Limitations
+
+Loader defaults have been spot-checked against MIMIC-IV demo v2.2; full MIMIC-IV
+v3.1 validation is in progress and targeted for v0.2.
+
 ## Clinical Disclaimer
 
 `ehr2rl` is research infrastructure. It is not clinical decision support, does
