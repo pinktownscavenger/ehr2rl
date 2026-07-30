@@ -35,8 +35,14 @@ def arrays_for_d3rlpy(
     if len(dataset) == 0:
         raise ValueError("Cannot export an empty EHRDataset.")
 
-    observations = np.vstack([trajectory.states for trajectory in dataset])
+    observations = np.vstack([trajectory.states for trajectory in dataset]).astype(
+        np.float32
+    )
     actions = np.vstack([trajectory.actions for trajectory in dataset])
-    rewards = np.concatenate([trajectory.rewards for trajectory in dataset])
-    terminals = np.concatenate([trajectory.terminals for trajectory in dataset])
+    rewards = np.concatenate([trajectory.rewards for trajectory in dataset]).astype(
+        np.float32
+    )
+    terminals = np.concatenate([trajectory.terminals for trajectory in dataset]).astype(
+        np.float32
+    )
     return observations, actions, rewards, terminals

@@ -1,14 +1,13 @@
 # ehr2rl
 
-`ehr2rl` is a Python library for turning MIMIC-IV-style electronic health
-record data into datasets ready for offline reinforcement learning research.
-It sits between raw clinical tables and offline RL libraries such as
-`d3rlpy`, handling the infrastructure work of representing patient trajectories,
-building rewards, estimating observed behavior, and exporting MDP-shaped data.
+`ehr2rl` is a Python library for turning MIMIC-IV-style electronic health record
+data into datasets ready for offline reinforcement learning research.
 
-This project is early and public from the start. The v0.1 goal is intentionally
-narrow: synthetic-data-tested infrastructure, MIMIC-IV-style table loading,
-basic rewards, a simple behavior policy estimator, and a first `d3rlpy` export.
+Healthcare ML libraries are usually built for supervised prediction, while
+offline RL libraries expect a clean state-action-reward dataset that already
+exists. `ehr2rl` fills the gap between those worlds: loading longitudinal EHR
+tables, representing patient trajectories, shaping rewards, estimating observed
+behavior, and exporting data for tools such as `d3rlpy`.
 
 ## What v0.1 Supports
 
@@ -17,23 +16,24 @@ basic rewards, a simple behavior policy estimator, and a first `d3rlpy` export.
 - Schema-validated CSV loaders for admissions, vitals, and labs.
 - Synthetic MIMIC-IV-style trajectories for tests and examples.
 - `MortalityReward` and `SofaReward`.
-- Basic behavior policy estimation with logistic regression.
+- Basic behavior policy estimation with logistic regression over synthetic or
+  user-provided actions.
 - Lazy `d3rlpy` export via the optional `ehr2rl[d3rlpy]` extra.
 
 ## Installation
 
 `ehr2rl` targets Python 3.10+.
 
-From a local checkout:
+Minimal install:
 
 ```bash
-pip install -e ".[dev]"
+pip install ehr2rl
 ```
 
 For `d3rlpy` export:
 
 ```bash
-pip install -e ".[dev,d3rlpy]"
+pip install "ehr2rl[d3rlpy]"
 ```
 
 ## Quickstart
@@ -42,6 +42,13 @@ pip install -e ".[dev,d3rlpy]"
 from ehr2rl import BehaviorPolicy, MortalityReward, make_synthetic_dataset, to_d3rlpy
 
 ds = make_synthetic_dataset(n_patients=25, trajectory_length=24, seed=7)
+
+# v0.1 uses synthetic/user-provided actions. Real medication action construction
+# is planned for v0.2.
+for trajectory in ds:
+    mean_bp = trajectory.states[:, 1]
+    trajectory.actions = ((140.0 - mean_bp) / 105.0).reshape(-1, 1)
+
 policy = BehaviorPolicy().fit(ds)
 ds = MortalityReward().shape(ds, policy=policy)
 
@@ -51,6 +58,15 @@ mdp_dataset = to_d3rlpy(ds)
 
 The synthetic path is the default development path so tests and examples do not
 require access to MIMIC-IV.
+
+## Development Install
+
+```bash
+pip install -e ".[dev]"
+pytest
+ruff check .
+mypy ehr2rl
+```
 
 ## MIMIC-IV Access
 
@@ -67,7 +83,21 @@ responsibility of the researcher.
 
 ## Roadmap
 
-v0.1 focuses on one dataset family and one export target. Future work may add
-medication-specific action construction, real MIMIC-IV validation passes,
-readmission/composite rewards, Minari export, CLI tooling, documentation, and
-support for eICU, MIMIC-III, or OMOP-CDM.
+v0.2 priorities:
+
+- Medication-specific action construction.
+- Real MIMIC-IV validation passes beyond the public demo schema.
+- Readmission and composite rewards.
+- Minari export.
+- CLI tooling and a documentation site.
+- Additional dataset families such as eICU, MIMIC-III, and OMOP-CDM.
+
+## Contributing
+
+Issues and pull requests are welcome. For v0.1, the most useful contributions
+are schema checks, synthetic-data edge cases, documentation fixes, and small
+export compatibility improvements.
+
+## Citation
+
+Citation metadata will be added once the project has a stable archival release.
