@@ -17,6 +17,7 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+d3rlpy_logs/
 
 # Build and packaging output
 build/
@@ -25,7 +26,7 @@ dist/
 
 # Notebook and local data artifacts
 .ipynb_checkpoints/
-data/
-local_data/
-mimic-iv/
+/data/
+/local_data/
+/mimic-iv/
 *.csv.gz

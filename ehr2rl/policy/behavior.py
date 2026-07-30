@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import KBinsDiscretizer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import KBinsDiscretizer, StandardScaler
 
 from ehr2rl.data.dataset import EHRDataset
 
@@ -18,20 +21,21 @@ class BehaviorPolicy:
         self.n_action_bins = n_action_bins
         self.random_state = random_state
         self.discretizer: KBinsDiscretizer | None = None
-        self.model: LogisticRegression | DummyClassifier | None = None
+        self.model: Any | None = None
 
     def fit(self, dataset: EHRDataset) -> BehaviorPolicy:
         states, actions = self._stack(dataset)
         labels = self._labels_from_actions(actions, fit=True)
 
         if np.unique(labels).shape[0] == 1:
-            model: LogisticRegression | DummyClassifier = DummyClassifier(
-                strategy="most_frequent"
-            )
+            model = DummyClassifier(strategy="most_frequent")
         else:
-            model = LogisticRegression(
-                max_iter=1000,
-                random_state=self.random_state,
+            model = make_pipeline(
+                StandardScaler(),
+                LogisticRegression(
+                    max_iter=2000,
+                    random_state=self.random_state,
+                ),
             )
         model.fit(states, labels)
         self.model = model
