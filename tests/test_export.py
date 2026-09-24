@@ -45,3 +45,23 @@ def test_to_d3rlpy_builds_dataset_when_extra_is_installed():
     mdp_dataset = to_d3rlpy(ds)
 
     assert type(mdp_dataset).__name__ == "MDPDataset"
+
+
+def test_to_d3rlpy_writes_sidecar_when_metadata_present(tmp_path):
+    pytest.importorskip("d3rlpy")
+    ds = MortalityReward().shape(
+        make_synthetic_dataset(n_patients=1, trajectory_length=3, seed=1)
+    )
+    for trajectory in ds:
+        trajectory.metadata["provenance"] = {
+            "bigquery_job_ids": ["job_1"],
+            "query_hash": "abc",
+            "itemid_map_version": "v3_1",
+            "feature_preset": "vitals_only",
+            "extraction_timestamp": "2026-09-24T00:00:00Z",
+            "mimic_version": "3.1",
+        }
+
+    to_d3rlpy(ds, provenance_path=tmp_path / "sidecar.json")
+
+    assert (tmp_path / "sidecar.json").exists()

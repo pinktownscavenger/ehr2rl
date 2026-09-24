@@ -16,6 +16,26 @@ def test_make_synthetic_dataset_shapes():
         assert trajectory.metadata["sofa_scores"].shape == (12,)
 
 
+def test_make_synthetic_dataset_default_action_shape_stays_one_column():
+    ds = make_synthetic_dataset(n_patients=2, trajectory_length=4, seed=1)
+
+    assert ds[0].actions.shape == (4, 1)
+
+
+def test_make_synthetic_dataset_can_include_two_column_medication_actions():
+    from ehr2rl.testing.synthetic import make_synthetic_dataset
+
+    ds = make_synthetic_dataset(
+        n_patients=2,
+        trajectory_length=4,
+        seed=1,
+        include_medication_metadata=True,
+    )
+
+    assert ds[0].actions.shape == (4, 2)
+    assert ds[0].metadata["action_names"] == ["vasopressor_bin", "fluid_bin"]
+
+
 def test_make_synthetic_dataset_is_deterministic():
     first = make_synthetic_dataset(n_patients=1, trajectory_length=4, seed=11)
     second = make_synthetic_dataset(n_patients=1, trajectory_length=4, seed=11)

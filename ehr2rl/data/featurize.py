@@ -16,6 +16,8 @@ def build_state_matrix(tables: dict[str, pd.DataFrame]) -> list[PatientTrajector
         return []
 
     event_frames = []
+    if "features" in tables:
+        event_frames.append(_canonical_events(tables["features"]))
     if "vitals_aligned" in tables:
         event_frames.append(_normalize_events(tables["vitals_aligned"], "vital"))
     elif "vitals" in tables:
@@ -87,3 +89,12 @@ def _normalize_events(events: pd.DataFrame, prefix: str) -> pd.DataFrame:
     df = df.rename(columns={time_column: "charttime"})
     df["feature"] = prefix + "_" + df["itemid"].astype(str)
     return df[["subject_id", "hadm_id", "charttime", "feature", "valuenum"]]
+
+
+def _canonical_events(events: pd.DataFrame) -> pd.DataFrame:
+    required = {"subject_id", "hadm_id", "charttime", "feature", "valuenum"}
+    missing = sorted(required - set(events.columns))
+    if missing:
+        joined = ", ".join(missing)
+        raise ValueError(f"features table is missing columns: {joined}")
+    return events[["subject_id", "hadm_id", "charttime", "feature", "valuenum"]].copy()
