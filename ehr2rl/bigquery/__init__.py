@@ -7,8 +7,8 @@ from ehr2rl.bigquery.pipeline import load_mimiciv_bigquery_dataset
 
 __all__ = [
     "BigQueryAuthError",
-    "BigQueryError",
     "BigQueryCohort",
+    "BigQueryError",
     "BudgetExceededError",
     "CohortCriteria",
     "GuardedBigQueryClient",

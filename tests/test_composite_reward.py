@@ -3,7 +3,12 @@ import pytest
 
 
 def test_composite_reward_applies_weights():
-    from ehr2rl import CompositeReward, MortalityReward, SofaReward, make_synthetic_dataset
+    from ehr2rl import (
+        CompositeReward,
+        MortalityReward,
+        SofaReward,
+        make_synthetic_dataset,
+    )
 
     ds = make_synthetic_dataset(n_patients=1, trajectory_length=4, seed=1)
     ds[0].metadata["died"] = False

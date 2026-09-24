@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-
 HOSP_TABLE = "physionet-data.mimiciv_3_1_hosp"
 ICU_TABLE = "physionet-data.mimiciv_3_1_icu"
 

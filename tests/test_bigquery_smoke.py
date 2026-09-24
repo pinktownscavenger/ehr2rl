@@ -22,9 +22,12 @@ def test_mimiciv_bigquery_smoke_builds_bounded_dataset():
     from ehr2rl.data.presets import get_feature_preset
 
     billing_project = os.getenv("EHR2RL_BIGQUERY_BILLING_PROJECT", "physionet-data-503819")
+    query_timeout = float(os.getenv("EHR2RL_BIGQUERY_TIMEOUT_SECONDS", "60"))
     client = GuardedBigQueryClient(
         bigquery.Client(project=billing_project),
         maximum_bytes_billed=25_000_000_000,
+        query_timeout=query_timeout,
+        disable_retries=True,
     )
     ds = load_mimiciv_bigquery_dataset(
         client=client,

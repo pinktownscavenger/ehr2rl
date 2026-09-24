@@ -30,11 +30,17 @@ class GuardedBigQueryClient:
         client: Any,
         maximum_bytes_billed: int,
         cache_dir: str | Path | None = None,
+        query_timeout: float | None = None,
+        disable_retries: bool = False,
     ) -> None:
         if maximum_bytes_billed <= 0:
             raise ValueError("maximum_bytes_billed must be positive.")
+        if query_timeout is not None and query_timeout <= 0:
+            raise ValueError("query_timeout must be positive when provided.")
         self.client = client
         self.maximum_bytes_billed = maximum_bytes_billed
+        self.query_timeout = query_timeout
+        self.disable_retries = disable_retries
         self.cache_dir = Path(cache_dir) if cache_dir is not None else None
         if self.cache_dir is not None:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -64,7 +70,11 @@ class GuardedBigQueryClient:
                 dry_run=True,
                 use_query_cache=False,
             )
-            dry_run_job = self.client.query(sql, job_config=dry_run_config)
+            dry_run_job = self.client.query(
+                sql,
+                job_config=dry_run_config,
+                **self._query_options(),
+            )
         except Exception as exc:  # pragma: no cover - depends on google exceptions
             raise BigQueryAuthError(f"BigQuery dry run failed: {exc}") from exc
 
@@ -80,8 +90,12 @@ class GuardedBigQueryClient:
                 maximum_bytes_billed=self.maximum_bytes_billed,
                 use_query_cache=False,
             )
-            job = self.client.query(sql, job_config=job_config)
-            dataframe = job.to_dataframe()
+            job = self.client.query(
+                sql,
+                job_config=job_config,
+                **self._query_options(),
+            )
+            dataframe = job.to_dataframe(timeout=self.query_timeout)
         except Exception as exc:  # pragma: no cover - depends on google exceptions
             raise BigQueryAuthError(f"BigQuery query failed: {exc}") from exc
 
@@ -112,6 +126,15 @@ class GuardedBigQueryClient:
             dataframe.to_parquet(parquet_path, index=False)
         except ImportError:
             dataframe.to_pickle(self.cache_dir / f"{query_hash}.pkl")
+
+    def _query_options(self) -> dict[str, object]:
+        options: dict[str, object] = {}
+        if self.query_timeout is not None:
+            options["timeout"] = self.query_timeout
+        if self.disable_retries:
+            options["retry"] = None
+            options["job_retry"] = None
+        return options
 
 
 def _query_hash(sql: str, cache_key_parts: tuple[str, ...]) -> str:

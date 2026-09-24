@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -54,9 +55,13 @@ def arrays_for_d3rlpy(
 
 
 def _dataset_provenance(dataset: EHRDataset):
-    provenances = [trajectory.metadata.get("provenance") for trajectory in dataset]
-    if any(provenance is None for provenance in provenances):
-        raise ValueError("All trajectories must include provenance metadata.")
+    provenances: list[dict[str, Any]] = []
+    for trajectory in dataset:
+        provenance = trajectory.metadata.get("provenance")
+        if not isinstance(provenance, dict):
+            raise TypeError("All trajectories must include provenance metadata.")
+        provenances.append(provenance)
+
     first = provenance_from_mapping(provenances[0])
     for provenance in provenances[1:]:
         if provenance_from_mapping(provenance) != first:
