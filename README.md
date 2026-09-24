@@ -77,8 +77,6 @@ Full synthetic-to-`d3rlpy` round trip:
 ```python
 from ehr2rl import BehaviorPolicy, MortalityReward, make_synthetic_dataset, to_d3rlpy
 
-ds = make_synthetic_dataset(n_patients=25, trajectory_length=24, seed=7)
-
 ds = make_synthetic_dataset(
     n_patients=25,
     trajectory_length=24,
@@ -123,6 +121,7 @@ client = GuardedBigQueryClient(
     bigquery.Client(project="YOUR_BILLING_PROJECT_ID"),
     maximum_bytes_billed=25_000_000_000,
     cache_dir=".ehr2rl_cache",
+    query_timeout=60,
 )
 
 ds = load_mimiciv_bigquery_dataset(
@@ -174,6 +173,13 @@ ruff check .
 mypy ehr2rl
 ```
 
+To exercise the optional BigQuery and `d3rlpy` paths in development:
+
+```bash
+pip install -e ".[dev,all]"
+pytest
+```
+
 ## MIMIC-IV Access
 
 `ehr2rl` does not ship, mirror, or provide access to MIMIC-IV. Researchers must
@@ -181,12 +187,16 @@ obtain any clinical data through the appropriate credentialed channels, such as
 PhysioNet, and comply with the applicable data use agreements.
 
 Credentialed users can run a bounded BigQuery smoke test without downloading the
-dataset. The test is opt-in and applies a per-query bytes-billed cap.
+dataset. The test is opt-in, applies a per-query bytes-billed cap, and disables
+BigQuery retries so credential or network failures return quickly.
 
 ```bash
 gcloud auth application-default login
 gcloud auth application-default set-quota-project YOUR_BILLING_PROJECT_ID
-EHR2RL_RUN_BIGQUERY_SMOKE=1 pytest tests/test_bigquery_smoke.py
+EHR2RL_RUN_BIGQUERY_SMOKE=1 \
+EHR2RL_BIGQUERY_BILLING_PROJECT=YOUR_BILLING_PROJECT_ID \
+EHR2RL_BIGQUERY_TIMEOUT_SECONDS=60 \
+pytest tests/test_bigquery_smoke.py
 ```
 
 The smoke helper uses the MIMIC-IV v3.1 BigQuery datasets exposed as
@@ -218,9 +228,9 @@ Future priorities:
 
 ## Contributing
 
-Issues and pull requests are welcome. For v0.1, the most useful contributions
-are schema checks, synthetic-data edge cases, documentation fixes, and small
-export compatibility improvements.
+Issues and pull requests are welcome. For v0.2, the most useful contributions
+are BigQuery schema checks, validated itemid-map updates, synthetic-data edge
+cases, documentation fixes, and export compatibility improvements.
 
 If you have access to full MIMIC-IV v3.1 and spot a schema mismatch, opening an
 issue with the table name and column is especially helpful.
