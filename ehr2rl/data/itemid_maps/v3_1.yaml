@@ -1,0 +1,54 @@
+{
+  "version": "v3_1",
+  "concepts": {
+    "heart_rate": [
+      {"itemid": 220045, "source": "chartevents", "unit": "bpm", "label": "Heart Rate"}
+    ],
+    "respiratory_rate": [
+      {"itemid": 220210, "source": "chartevents", "unit": "insp/min", "label": "Respiratory Rate"}
+    ],
+    "spo2": [
+      {"itemid": 220277, "source": "chartevents", "unit": "%", "label": "O2 saturation pulseoxymetry"}
+    ],
+    "temperature_f": [
+      {"itemid": 223761, "source": "chartevents", "unit": "degF", "label": "Temperature Fahrenheit", "conversion": "fahrenheit_to_celsius"}
+    ],
+    "temperature_c": [
+      {"itemid": 223762, "source": "chartevents", "unit": "degC", "label": "Temperature Celsius"}
+    ],
+    "lactate": [
+      {"itemid": 50813, "source": "labevents", "unit": "mmol/L", "label": "Lactate"}
+    ],
+    "creatinine": [
+      {"itemid": 50912, "source": "labevents", "unit": "mg/dL", "label": "Creatinine"}
+    ],
+    "platelets": [
+      {"itemid": 51265, "source": "labevents", "unit": "K/uL", "label": "Platelet Count"}
+    ],
+    "wbc": [
+      {"itemid": 51301, "source": "labevents", "unit": "K/uL", "label": "White Blood Cells"}
+    ],
+    "hematocrit": [
+      {"itemid": 51221, "source": "labevents", "unit": "%", "label": "Hematocrit"}
+    ],
+    "iv_fluids": [
+      {"itemid": 225158, "source": "inputevents", "unit": "mL", "label": "NaCl 0.9%"},
+      {"itemid": 220949, "source": "inputevents", "unit": "mL", "label": "Dextrose 5%"}
+    ],
+    "norepinephrine": [
+      {"itemid": 221906, "source": "inputevents", "unit": "mcg/kg/min", "label": "Norepinephrine", "conversion": "nee_norepinephrine"}
+    ],
+    "epinephrine": [
+      {"itemid": 221289, "source": "inputevents", "unit": "mcg/kg/min", "label": "Epinephrine", "conversion": "nee_epinephrine"}
+    ],
+    "vasopressin": [
+      {"itemid": 222315, "source": "inputevents", "unit": "units/hour", "label": "Vasopressin", "conversion": "nee_vasopressin"}
+    ],
+    "phenylephrine": [
+      {"itemid": 221749, "source": "inputevents", "unit": "mcg/kg/min", "label": "Phenylephrine", "conversion": "nee_phenylephrine"}
+    ],
+    "dopamine": [
+      {"itemid": 221662, "source": "inputevents", "unit": "mcg/kg/min", "label": "Dopamine", "conversion": "nee_dopamine"}
+    ]
+  }
+}

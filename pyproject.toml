@@ -52,6 +52,9 @@ Issues = "https://github.com/pinktownscavenger/ehr2rl/issues"
 [tool.setuptools.packages.find]
 include = ["ehr2rl*"]
 
+[tool.setuptools.package-data]
+"ehr2rl.data" = ["itemid_maps/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
