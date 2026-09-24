@@ -76,3 +76,33 @@ def test_fluid_amount_maps_to_fluid_bin():
     )
 
     assert build_medication_actions(events, timestamps, config=config).tolist() == [[0, 3]]
+
+
+def test_fluid_amount_is_allocated_by_overlap_duration():
+    from ehr2rl.actions import ActionConfig, DoseBins, build_medication_actions
+
+    timestamps = np.array(
+        [
+            pd.Timestamp("2026-01-01 00:00:00").timestamp(),
+            pd.Timestamp("2026-01-01 01:00:00").timestamp(),
+        ]
+    )
+    events = pd.DataFrame(
+        {
+            "starttime": pd.to_datetime(["2026-01-01 00:30:00"]),
+            "endtime": pd.to_datetime(["2026-01-01 01:30:00"]),
+            "itemid": [225158],
+            "rate": [0.0],
+            "amount": [1000.0],
+            "statusdescription": ["FinishedRunning"],
+        }
+    )
+    config = ActionConfig(
+        vasopressor_bins=DoseBins(edges=(0.0, 0.1, 0.3)),
+        fluid_bins=DoseBins(edges=(0.0, 250.0, 500.0, 750.0)),
+    )
+
+    assert build_medication_actions(events, timestamps, config=config).tolist() == [
+        [0, 3],
+        [0, 3],
+    ]

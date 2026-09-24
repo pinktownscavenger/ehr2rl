@@ -11,7 +11,7 @@ from ehr2rl.bigquery.client import GuardedBigQueryClient, QueryResult
 from ehr2rl.bigquery.cohort import BigQueryCohort
 from ehr2rl.data.dataset import EHRDataset
 from ehr2rl.data.featurize import build_state_matrix
-from ehr2rl.data.itemid_maps import ItemIdEntry, ItemIdMap
+from ehr2rl.data.itemid_maps import ItemIdEntry, ItemIdMap, validate_itemid_map
 from ehr2rl.data.presets import FeaturePreset
 
 
@@ -28,6 +28,7 @@ def load_mimiciv_bigquery_dataset(
     feature_entries = [entry for entries in resolved.values() for entry in entries]
     concept_by_itemid = _concept_by_itemid(resolved)
     input_entries = _entries_by_source(itemid_map, "inputevents")
+    _validate_live_item_labels(client, itemid_map)
 
     admissions_result = client.query_dataframe(
         cohort.admissions_sql(),
@@ -159,3 +160,42 @@ def _provenance(
         "extraction_timestamp": datetime.now(timezone.utc).isoformat(),
         "mimic_version": cohort.mimic_version.replace("_", "."),
     }
+
+
+def _validate_live_item_labels(
+    client: GuardedBigQueryClient,
+    itemid_map: ItemIdMap,
+) -> None:
+    icu_itemids = [
+        entry.itemid
+        for entry in _entries_by_source(itemid_map, "chartevents")
+        + _entries_by_source(itemid_map, "inputevents")
+    ]
+    lab_itemids = [entry.itemid for entry in _entries_by_source(itemid_map, "labevents")]
+    labels = []
+    if icu_itemids:
+        labels.append(
+            client.query_dataframe(
+                _label_sql("physionet-data.mimiciv_3_1_icu.d_items", icu_itemids),
+                cache_key_parts=(itemid_map.version, "icu_labels"),
+            ).dataframe
+        )
+    if lab_itemids:
+        labels.append(
+            client.query_dataframe(
+                _label_sql("physionet-data.mimiciv_3_1_hosp.d_labitems", lab_itemids),
+                cache_key_parts=(itemid_map.version, "lab_labels"),
+            ).dataframe
+        )
+    if labels:
+        validate_itemid_map(itemid_map, pd.concat(labels, ignore_index=True))
+
+
+def _label_sql(table: str, itemids: list[int]) -> str:
+    itemid_sql = ", ".join(str(int(itemid)) for itemid in itemids)
+    return f"""
+SELECT itemid, label
+FROM `{table}`
+WHERE itemid IN ({itemid_sql})
+ORDER BY itemid
+"""
