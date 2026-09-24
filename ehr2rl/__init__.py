@@ -5,6 +5,7 @@ from ehr2rl.data.loaders import EHRValidationError
 from ehr2rl.export.d3rlpy import to_d3rlpy
 from ehr2rl.policy.behavior import BehaviorPolicy
 from ehr2rl.reward.mortality import MortalityReward
+from ehr2rl.reward.readmission import ReadmissionReward
 from ehr2rl.reward.sofa import SofaReward
 from ehr2rl.testing.synthetic import make_synthetic_dataset
 
@@ -16,6 +17,7 @@ __all__ = [
     "EHRValidationError",
     "MortalityReward",
     "PatientTrajectory",
+    "ReadmissionReward",
     "SofaReward",
     "make_synthetic_dataset",
     "to_d3rlpy",
