@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ehr2rl"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert MIMIC-IV-style EHR data into offline reinforcement learning datasets."
 readme = "README.md"
 requires-python = ">=3.10"
