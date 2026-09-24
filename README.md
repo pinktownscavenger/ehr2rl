@@ -42,6 +42,12 @@ For `d3rlpy` export:
 pip install "ehr2rl[d3rlpy]"
 ```
 
+For credentialed MIMIC-IV BigQuery smoke tests:
+
+```bash
+pip install "ehr2rl[bigquery]"
+```
+
 ## Quickstart
 
 Start with synthetic data:
@@ -93,6 +99,18 @@ mypy ehr2rl
 `ehr2rl` does not ship, mirror, or provide access to MIMIC-IV. Researchers must
 obtain any clinical data through the appropriate credentialed channels, such as
 PhysioNet, and comply with the applicable data use agreements.
+
+Credentialed users can run a bounded BigQuery smoke test without downloading the
+dataset. The test is opt-in and applies a per-query bytes-billed cap.
+
+```bash
+gcloud auth application-default login
+gcloud auth application-default set-quota-project YOUR_BILLING_PROJECT_ID
+EHR2RL_RUN_BIGQUERY_SMOKE=1 pytest tests/test_bigquery_smoke.py
+```
+
+The smoke helper uses the MIMIC-IV v3.1 BigQuery datasets exposed as
+`physionet-data.mimiciv_3_1_hosp` and `physionet-data.mimiciv_3_1_icu`.
 
 ## Known Limitations
 
