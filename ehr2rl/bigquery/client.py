@@ -47,8 +47,6 @@ class GuardedBigQueryClient:
     ) -> QueryResult:
         """Return a dataframe for ``sql`` after dry-run and cache checks."""
 
-        from google.cloud import bigquery
-
         query_hash = _query_hash(sql, cache_key_parts)
         cached = self._read_cache(query_hash)
         if cached is not None:
@@ -58,6 +56,8 @@ class GuardedBigQueryClient:
                 bytes_processed=0,
                 query_hash=query_hash,
             )
+
+        from google.cloud import bigquery
 
         try:
             dry_run_config = bigquery.QueryJobConfig(
