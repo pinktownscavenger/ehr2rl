@@ -41,6 +41,10 @@ class BigQueryCohort:
     criteria: CohortCriteria
     mimic_version: str = "3_1"
 
+    def __post_init__(self) -> None:
+        if self.mimic_version != "3_1":
+            raise ValueError("mimic_version must be '3_1' for v0.2 BigQuery cohorts.")
+
     def admissions_sql(self) -> str:
         """Return admissions rows for the cohort."""
 

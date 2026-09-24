@@ -102,3 +102,25 @@ def test_guarded_query_cache_hit_avoids_bigquery_call(tmp_path):
 
     assert first.dataframe.equals(second.dataframe)
     assert fake.real_query_count == 1
+
+
+def test_guarded_query_cache_hit_does_not_require_bigquery_module(
+    tmp_path,
+    monkeypatch,
+):
+    from ehr2rl.bigquery import GuardedBigQueryClient
+
+    fake = FakeBigQueryClient(
+        dry_run_bytes=10,
+        real_dataframe=pd.DataFrame({"x": [1]}),
+    )
+    guarded = GuardedBigQueryClient(fake, maximum_bytes_billed=100, cache_dir=tmp_path)
+    first = guarded.query_dataframe("SELECT 1", cache_key_parts=("v3_1",))
+
+    monkeypatch.delitem(sys.modules, "google.cloud.bigquery", raising=False)
+    monkeypatch.delitem(sys.modules, "google.cloud", raising=False)
+    monkeypatch.delitem(sys.modules, "google", raising=False)
+    second = guarded.query_dataframe("SELECT 1", cache_key_parts=("v3_1",))
+
+    assert second.dataframe.equals(first.dataframe)
+    assert fake.real_query_count == 1
