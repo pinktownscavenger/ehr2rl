@@ -34,7 +34,11 @@ class FakeGuardedClient:
 
 
 def test_bigquery_pipeline_builds_dataset_from_mocked_tables():
-    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria, load_mimiciv_bigquery_dataset
+    from ehr2rl.bigquery import (
+        BigQueryCohort,
+        CohortCriteria,
+        load_mimiciv_bigquery_dataset,
+    )
 
     ds = load_mimiciv_bigquery_dataset(
         client=_fake_client(),
@@ -50,7 +54,11 @@ def test_bigquery_pipeline_builds_dataset_from_mocked_tables():
 
 
 def test_bigquery_pipeline_attaches_query_hashes_and_job_ids():
-    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria, load_mimiciv_bigquery_dataset
+    from ehr2rl.bigquery import (
+        BigQueryCohort,
+        CohortCriteria,
+        load_mimiciv_bigquery_dataset,
+    )
 
     ds = load_mimiciv_bigquery_dataset(
         client=_fake_client(),
@@ -71,7 +79,11 @@ def test_bigquery_pipeline_attaches_query_hashes_and_job_ids():
 
 
 def test_bigquery_pipeline_validates_itemid_labels_before_extraction():
-    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria, load_mimiciv_bigquery_dataset
+    from ehr2rl.bigquery import (
+        BigQueryCohort,
+        CohortCriteria,
+        load_mimiciv_bigquery_dataset,
+    )
 
     fake_client = _fake_client()
 
@@ -90,7 +102,11 @@ def test_bigquery_pipeline_validates_itemid_labels_before_extraction():
 
 
 def test_bigquery_pipeline_rejects_label_drift():
-    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria, load_mimiciv_bigquery_dataset
+    from ehr2rl.bigquery import (
+        BigQueryCohort,
+        CohortCriteria,
+        load_mimiciv_bigquery_dataset,
+    )
     from ehr2rl.data.loaders import EHRValidationError
 
     fake_client = _fake_client()

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-
 DEFAULT_FLUID_ITEMIDS = frozenset({225158, 220949})
 
 

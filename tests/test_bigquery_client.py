@@ -23,8 +23,10 @@ class FakeJob:
         self.total_bytes_processed = bytes_processed
         self._dataframe = dataframe
         self.job_id = job_id
+        self.to_dataframe_timeout = None
 
-    def to_dataframe(self):
+    def to_dataframe(self, timeout=None):
+        self.to_dataframe_timeout = timeout
         return self._dataframe.copy()
 
 
@@ -34,18 +36,26 @@ class FakeBigQueryClient:
         self.real_dataframe = real_dataframe
         self.real_query_count = 0
         self.real_job_config = None
+        self.query_timeouts = []
+        self.query_retries = []
+        self.query_job_retries = []
+        self.real_job = None
 
-    def query(self, sql, job_config):
+    def query(self, sql, job_config, timeout=None, retry="default", job_retry="default"):
         _ = sql
+        self.query_timeouts.append(timeout)
+        self.query_retries.append(retry)
+        self.query_job_retries.append(job_retry)
         if job_config.dry_run:
             return FakeJob(bytes_processed=self.dry_run_bytes)
         self.real_query_count += 1
         self.real_job_config = job_config
-        return FakeJob(
+        self.real_job = FakeJob(
             bytes_processed=self.dry_run_bytes,
             dataframe=self.real_dataframe,
             job_id="real_job",
         )
+        return self.real_job
 
 
 @pytest.fixture(autouse=True)
@@ -124,3 +134,43 @@ def test_guarded_query_cache_hit_does_not_require_bigquery_module(
 
     assert second.dataframe.equals(first.dataframe)
     assert fake.real_query_count == 1
+
+
+def test_guarded_query_applies_timeout_to_bigquery_calls(tmp_path):
+    from ehr2rl.bigquery import GuardedBigQueryClient
+
+    fake = FakeBigQueryClient(
+        dry_run_bytes=10,
+        real_dataframe=pd.DataFrame({"x": [1]}),
+    )
+    guarded = GuardedBigQueryClient(
+        fake,
+        maximum_bytes_billed=100,
+        cache_dir=tmp_path,
+        query_timeout=3.0,
+    )
+
+    guarded.query_dataframe("SELECT 1")
+
+    assert fake.query_timeouts == [3.0, 3.0]
+    assert fake.real_job.to_dataframe_timeout == 3.0
+
+
+def test_guarded_query_can_disable_bigquery_retries(tmp_path):
+    from ehr2rl.bigquery import GuardedBigQueryClient
+
+    fake = FakeBigQueryClient(
+        dry_run_bytes=10,
+        real_dataframe=pd.DataFrame({"x": [1]}),
+    )
+    guarded = GuardedBigQueryClient(
+        fake,
+        maximum_bytes_billed=100,
+        cache_dir=tmp_path,
+        disable_retries=True,
+    )
+
+    guarded.query_dataframe("SELECT 1")
+
+    assert fake.query_retries == [None, None]
+    assert fake.query_job_retries == [None, None]

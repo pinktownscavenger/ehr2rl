@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 COHORT_SIZE = 25
 MAXIMUM_BYTES_BILLED = 25_000_000_000
 
@@ -18,8 +17,8 @@ def main() -> None:
         raise SystemExit("Set EHR2RL_BIGQUERY_BILLING_PROJECT before running this example.")
 
     try:
-        from google.cloud import bigquery
         from d3rlpy.algos import IQLConfig
+        from google.cloud import bigquery
     except ImportError as exc:
         raise SystemExit(
             "Install optional dependencies first: pip install 'ehr2rl[all]'."
