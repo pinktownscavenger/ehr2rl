@@ -11,6 +11,7 @@ def make_synthetic_dataset(
     n_patients: int = 100,
     trajectory_length: int = 48,
     seed: int = 42,
+    include_medication_metadata: bool = False,
 ) -> EHRDataset:
     """Create a deterministic synthetic dataset with plausible clinical ranges."""
 
@@ -31,7 +32,12 @@ def make_synthetic_dataset(
         creatinine = rng.lognormal(mean=0.15, sigma=0.25, size=trajectory_length).clip(0.2, 8)
         states = np.column_stack([heart_rate, mean_bp, lactate, creatinine])
 
-        vasopressor_bin = np.digitize(mean_bp < 65, [0.5]).reshape(-1, 1)
+        vasopressor_bin = np.digitize(mean_bp < 65, [0.5])
+        if include_medication_metadata:
+            fluid_bin = np.digitize(lactate > 2.0, [0.5])
+            actions = np.column_stack([vasopressor_bin, fluid_bin])
+        else:
+            actions = vasopressor_bin.reshape(-1, 1)
         died = bool(rng.random() < 0.2)
         sofa_scores = _synthetic_sofa(rng, trajectory_length, died)
 
@@ -43,6 +49,8 @@ def make_synthetic_dataset(
             "feature_names": ["heart_rate", "mean_bp", "lactate", "creatinine"],
             "sofa_scores": sofa_scores,
         }
+        if include_medication_metadata:
+            metadata["action_names"] = ["vasopressor_bin", "fluid_bin"]
 
         trajectories.append(
             PatientTrajectory(
@@ -50,7 +58,7 @@ def make_synthetic_dataset(
                 admission_id=f"H{patient_index:05d}",
                 timestamps=timestamps,
                 states=states,
-                actions=vasopressor_bin,
+                actions=actions,
                 rewards=rewards,
                 terminals=terminals,
                 metadata=metadata,
