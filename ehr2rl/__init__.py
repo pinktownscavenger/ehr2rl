@@ -10,7 +10,7 @@ from ehr2rl.reward.readmission import ReadmissionReward
 from ehr2rl.reward.sofa import SofaReward
 from ehr2rl.testing.synthetic import make_synthetic_dataset
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "BehaviorPolicy",
