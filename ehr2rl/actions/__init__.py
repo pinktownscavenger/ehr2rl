@@ -1,6 +1,7 @@
 """Medication-derived action construction utilities."""
 
 from ehr2rl.actions.discretize import DoseBins
+from ehr2rl.actions.medications import ActionConfig, build_medication_actions
 from ehr2rl.actions.vasopressors import (
     DEFAULT_NEE_CONVERSIONS,
     VasopressorConversion,
@@ -8,8 +9,10 @@ from ehr2rl.actions.vasopressors import (
 )
 
 __all__ = [
+    "ActionConfig",
     "DEFAULT_NEE_CONVERSIONS",
     "DoseBins",
     "VasopressorConversion",
+    "build_medication_actions",
     "norepinephrine_equivalent",
 ]
