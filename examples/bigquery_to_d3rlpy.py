@@ -25,7 +25,7 @@ def main() -> None:
             "Install optional dependencies first: pip install 'ehr2rl[all]'."
         ) from exc
 
-    from ehr2rl import CompositeReward, MortalityReward, ReadmissionReward, to_d3rlpy
+    from ehr2rl import CompositeReward, MortalityReward, SofaReward, to_d3rlpy
     from ehr2rl.actions import ActionConfig, DoseBins
     from ehr2rl.bigquery import (
         BigQueryCohort,
@@ -51,9 +51,9 @@ def main() -> None:
             fluid_bins=DoseBins(edges=(0.0, 250.0, 500.0, 1000.0)),
         ),
     )
-    reward = CompositeReward([(MortalityReward(), 1.0), (ReadmissionReward(), 0.5)])
+    reward = CompositeReward([(MortalityReward(), 1.0), (SofaReward(), 0.0)])
     for trajectory in dataset:
-        trajectory.metadata.setdefault("readmitted_within_30_days", None)
+        trajectory.metadata.setdefault("sofa_scores", [0.0] * trajectory.n_steps)
     dataset = reward.shape(dataset)
     mdp_dataset = to_d3rlpy(dataset, provenance_path="bigquery_to_d3rlpy.provenance.json")
 

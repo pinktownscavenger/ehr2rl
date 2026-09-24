@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 
 class FakeGuardedClient:
@@ -10,7 +11,11 @@ class FakeGuardedClient:
         from ehr2rl.bigquery import QueryResult
 
         self.calls.append((sql, cache_key_parts))
-        if "chartevents" in sql:
+        if "d_items" in sql:
+            name = "icu_labels"
+        elif "d_labitems" in sql:
+            name = "lab_labels"
+        elif "chartevents" in sql:
             name = "vitals"
         elif "labevents" in sql:
             name = "labs"
@@ -65,6 +70,48 @@ def test_bigquery_pipeline_attaches_query_hashes_and_job_ids():
     assert provenance["query_hash"] == "hash_admissions:hash_vitals:hash_inputevents"
 
 
+def test_bigquery_pipeline_validates_itemid_labels_before_extraction():
+    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria, load_mimiciv_bigquery_dataset
+
+    fake_client = _fake_client()
+
+    load_mimiciv_bigquery_dataset(
+        client=fake_client,
+        cohort=BigQueryCohort(CohortCriteria(cohort_size=1)),
+        preset=_test_preset(),
+        itemid_map=_test_itemid_map(),
+        action_config=_test_action_config(),
+    )
+
+    queried_sql = "\n".join(sql for sql, _ in fake_client.calls)
+
+    assert "d_items" in queried_sql
+    assert "d_labitems" in queried_sql
+
+
+def test_bigquery_pipeline_rejects_label_drift():
+    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria, load_mimiciv_bigquery_dataset
+    from ehr2rl.data.loaders import EHRValidationError
+
+    fake_client = _fake_client()
+    fake_client.tables["icu_labels"] = pd.DataFrame(
+        {
+            "itemid": [220045, 221906],
+            "label": ["Heart Rhythm", "Norepinephrine"],
+        }
+    )
+
+    with pytest.raises(EHRValidationError, match="label changed"):
+        load_mimiv = load_mimiciv_bigquery_dataset
+        load_mimiv(
+            client=fake_client,
+            cohort=BigQueryCohort(CohortCriteria(cohort_size=1)),
+            preset=_test_preset(),
+            itemid_map=_test_itemid_map(),
+            action_config=_test_action_config(),
+        )
+
+
 def _fake_client():
     return FakeGuardedClient(
         {
@@ -90,6 +137,13 @@ def _fake_client():
             "inputevents": pd.DataFrame(
                 columns=["starttime", "endtime", "itemid", "rate", "amount", "statusdescription"]
             ),
+            "icu_labels": pd.DataFrame(
+                {
+                    "itemid": [220045, 221906],
+                    "label": ["Heart Rate", "Norepinephrine"],
+                }
+            ),
+            "lab_labels": pd.DataFrame({"itemid": [50813], "label": ["Lactate"]}),
         }
     )
 
@@ -111,6 +165,9 @@ def _test_itemid_map():
             ],
             "norepinephrine": [
                 ItemIdEntry(itemid=221906, source="inputevents", label="Norepinephrine")
+            ],
+            "lactate": [
+                ItemIdEntry(itemid=50813, source="labevents", label="Lactate")
             ],
         },
     )
