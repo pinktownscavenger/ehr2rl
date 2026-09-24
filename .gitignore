@@ -29,4 +29,18 @@ dist/
 /data/
 /local_data/
 /mimic-iv/
+*.csv
 *.csv.gz
+*.tsv
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.db
+*.sqlite
+*.sqlite3
+
+# Local cloud credentials
+application_default_credentials.json
+gcloud/
+.config/gcloud/
