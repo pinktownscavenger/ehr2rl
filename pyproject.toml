@@ -36,6 +36,13 @@ bigquery = [
   "pyarrow>=15.0",
 ]
 dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=24.0", "ruff>=0.4", "mypy>=1.8"]
+docs = [
+  "Sphinx>=9.1,<10",
+  "myst-parser>=5.1,<6",
+  "furo>=2025.12.19",
+  "sphinx-autodoc-typehints>=3.13,<4",
+  "pytest>=7.0",
+]
 all = [
   "d3rlpy>=2.0",
   "db-dtypes>=1.4",
