@@ -49,10 +49,10 @@ Build datasets for offline RL experiments.
 
 Maintain and extend the library.
 
-- Development setup and quality checks
-- Architecture and data flow
-- Testing conventions
-- Adding features, actions, rewards, and exporters
+- [Development setup and quality checks](develop/setup.md)
+- [Architecture and data flow](develop/architecture.md)
+- [Testing conventions](develop/testing.md)
+- [Adding features, actions, rewards, and exporters](develop/extending.md)
 :::
 
 ::::
@@ -100,6 +100,18 @@ concepts/features-and-itemids
 concepts/reward-semantics
 concepts/provenance
 concepts/limitations
+```
+
+```{toctree}
+:hidden:
+:caption: Develop
+
+develop/setup
+develop/architecture
+develop/testing
+develop/extending
+develop/documentation
+develop/releases
 ```
 
 ```{toctree}

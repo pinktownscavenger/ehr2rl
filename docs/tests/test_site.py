@@ -145,3 +145,28 @@ def test_concept_pages_cover_invariants_and_limitations(built_site: Path) -> Non
         "not clinical decision support",
     ):
         assert phrase in text, f"concept pages are missing {phrase!r}"
+
+
+def test_contributor_path_and_readme_link(built_site: Path) -> None:
+    import html
+    import re
+
+    develop_dir = built_site / "develop"
+    assert develop_dir.is_dir(), "contributor pages were not built"
+    text = " ".join(
+        html.unescape(re.sub(r"<[^>]+>", " ", page.read_text("utf-8")))
+        for page in develop_dir.glob("*.html")
+    )
+    text = re.sub(r"\s+", " ", text)
+    for phrase in (
+        "pytest",
+        "ruff check .",
+        "mypy ehr2rl",
+        "Adding a reward",
+        "Adding features and itemids",
+        "Documentation workflow",
+    ):
+        assert phrase in text, f"contributor pages are missing {phrase!r}"
+
+    readme = (DOCS_DIR.parent / "README.md").read_text(encoding="utf-8")
+    assert "https://pinktownscavenger.github.io/ehr2rl/" in readme

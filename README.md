@@ -13,6 +13,7 @@ exists. `ehr2rl` fills the gap between those worlds: loading longitudinal EHR
 tables, representing patient trajectories, shaping rewards, estimating observed
 behavior, and exporting data for tools such as `d3rlpy`.
 
+[Documentation](https://pinktownscavenger.github.io/ehr2rl/) ·
 [PyPI](https://pypi.org/project/ehr2rl) ·
 [GitHub](https://github.com/pinktownscavenger/ehr2rl)
 
