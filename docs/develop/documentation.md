@@ -17,8 +17,17 @@ Then open `http://localhost:8000`. `docs/_build/` is ignored by Git; never
 commit built HTML.
 
 Type names link to the Python, NumPy, and pandas docs through object
-inventories committed in `docs/_intersphinx/`, so the build works offline. Refresh
-those files occasionally; the command is in `docs/conf.py`.
+inventories committed in `docs/_intersphinx/`, so the build works offline.
+Refresh them occasionally, for example before a release. This downloads every
+inventory listed in `intersphinx_mapping`:
+
+```bash
+.venv-docs/bin/python -c "import runpy; [print(u + '/objects.inv', 'docs/' + f) for u, (f, _) in runpy.run_path('docs/conf.py')['intersphinx_mapping'].values()]" | while read -r url out; do curl -sSfL -o "$out" "$url"; done
+```
+
+It uses `curl` because numpy.org rejects Python's default HTTP client.
+
+Rebuild strictly afterwards and commit the updated files.
 
 ## Warnings are errors
 

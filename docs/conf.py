@@ -37,8 +37,8 @@ nitpick_ignore: list[tuple[str, str]] = [
 
 # Inventories are committed in _intersphinx/ and read first, so a network
 # outage cannot fail the strict build. The URLs are the link targets and the
-# fallback if a local file is missing. Refresh the files occasionally with:
-#   curl -sSfL -o docs/_intersphinx/numpy.inv https://numpy.org/doc/stable/objects.inv
+# fallback if a local file is missing. The refresh command is in
+# develop/documentation.md.
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", ("_intersphinx/python.inv", None)),
     "numpy": ("https://numpy.org/doc/stable", ("_intersphinx/numpy.inv", None)),
