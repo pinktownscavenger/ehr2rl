@@ -16,8 +16,9 @@ With the `docs` extra installed in a Python 3.12 environment:
 Then open `http://localhost:8000`. `docs/_build/` is ignored by Git; never
 commit built HTML.
 
-The build downloads Python, NumPy, and pandas object inventories to link type
-names, so it needs network access.
+Type names link to the Python, NumPy, and pandas docs through object
+inventories committed in `docs/_intersphinx/`, so the build works offline. Refresh
+those files occasionally; the command is in `docs/conf.py`.
 
 ## Warnings are errors
 

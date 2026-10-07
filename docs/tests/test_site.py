@@ -170,3 +170,20 @@ def test_contributor_path_and_readme_link(built_site: Path) -> None:
 
     readme = (DOCS_DIR.parent / "README.md").read_text(encoding="utf-8")
     assert "https://pinktownscavenger.github.io/ehr2rl/" in readme
+
+
+def test_build_does_not_need_network(tmp_path: Path) -> None:
+    """A network outage must not fail the strict build (and so block PRs)."""
+    import os
+
+    unreachable = "http://127.0.0.1:9"
+    env = {**os.environ, "HTTP_PROXY": unreachable, "HTTPS_PROXY": unreachable}
+    result = subprocess.run(
+        [sys.executable, "-m", "sphinx", "-W", "--keep-going", "-b", "html", "-E",
+         str(DOCS_DIR), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    assert result.returncode == 0, result.stderr[-2000:]

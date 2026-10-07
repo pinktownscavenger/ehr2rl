@@ -35,10 +35,14 @@ nitpick_ignore: list[tuple[str, str]] = [
     ("py:class", "d3rlpy.dataset.MDPDataset"),
 ]
 
+# Inventories are committed in _intersphinx/ and read first, so a network
+# outage cannot fail the strict build. The URLs are the link targets and the
+# fallback if a local file is missing. Refresh the files occasionally with:
+#   curl -sSfL -o docs/_intersphinx/numpy.inv https://numpy.org/doc/stable/objects.inv
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
-    "numpy": ("https://numpy.org/doc/stable", None),
-    "pandas": ("https://pandas.pydata.org/docs", None),
+    "python": ("https://docs.python.org/3", ("_intersphinx/python.inv", None)),
+    "numpy": ("https://numpy.org/doc/stable", ("_intersphinx/numpy.inv", None)),
+    "pandas": ("https://pandas.pydata.org/docs", ("_intersphinx/pandas.inv", None)),
 }
 
 autodoc_member_order = "bysource"
