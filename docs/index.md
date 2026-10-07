@@ -40,7 +40,8 @@ Build datasets for offline RL experiments.
 - [MIMIC-IV v3.1 through BigQuery](use/bigquery.md), with cost guards
 - [Actions](use/actions.md), [rewards](use/rewards.md),
   [behavior policy](use/behavior-policy.md), and [export](use/export.md)
-- Dataset model, provenance, and limitations
+- [Dataset model](concepts/dataset-model.md), [provenance](concepts/provenance.md),
+  and [limitations](concepts/limitations.md)
 :::
 
 :::{container} role-link
@@ -87,6 +88,18 @@ use/rewards
 use/behavior-policy
 use/export
 use/local-csv
+```
+
+```{toctree}
+:hidden:
+:caption: Understand
+
+concepts/dataset-model
+concepts/pipeline
+concepts/features-and-itemids
+concepts/reward-semantics
+concepts/provenance
+concepts/limitations
 ```
 
 ```{toctree}

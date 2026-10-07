@@ -123,3 +123,25 @@ def test_nitpick_ignore_is_narrow() -> None:
         assert role.startswith("py:")
         assert not target.startswith("ehr2rl"), f"{target} hides a broken ehr2rl reference"
         assert "*" not in target and "." in target, f"{target} is not one qualified type"
+
+
+def test_concept_pages_cover_invariants_and_limitations(built_site: Path) -> None:
+    import html
+    import re
+
+    concept_dir = built_site / "concepts"
+    assert concept_dir.is_dir(), "concept pages were not built"
+    text = " ".join(
+        html.unescape(re.sub(r"<[^>]+>", " ", page.read_text("utf-8")))
+        for page in concept_dir.glob("*.html")
+    )
+    text = re.sub(r"\s+", " ", text)
+    for phrase in (
+        "(T, D)",
+        "(T, A)",
+        "maximum_bytes_billed",
+        "itemid map",
+        "research infrastructure",
+        "not clinical decision support",
+    ):
+        assert phrase in text, f"concept pages are missing {phrase!r}"
