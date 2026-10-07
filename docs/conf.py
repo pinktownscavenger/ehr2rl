@@ -19,6 +19,7 @@ extensions = [
 ]
 
 source_suffix = {".md": "markdown"}
+myst_enable_extensions = ["colon_fence"]
 root_doc = "index"
 exclude_patterns = ["_build", "tests"]
 
@@ -42,5 +43,33 @@ napoleon_numpy_docstring = True
 
 html_theme = "furo"
 html_title = f"ehr2rl {release}"
+# Furo's default dark style ("native") underlines module names in code, which
+# reads as a link.
+pygments_dark_style = "github-dark"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+
+# One muted clinical-green accent. Both values meet WCAG AA (>= 4.5:1) against
+# Furo's page and secondary backgrounds in their appearance.
+_system_fonts = (
+    "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, "
+    "sans-serif"
+)
+_mono_fonts = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+html_theme_options = {
+    "light_css_variables": {
+        "color-brand-primary": "#2b6a52",
+        "color-brand-content": "#2b6a52",
+        "color-brand-visited": "#2b6a52",
+        "font-stack": _system_fonts,
+        "font-stack--monospace": _mono_fonts,
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#7cc5a5",
+        "color-brand-content": "#7cc5a5",
+        "color-brand-visited": "#7cc5a5",
+    },
+    "source_repository": "https://github.com/pinktownscavenger/ehr2rl/",
+    "source_branch": "main",
+    "source_directory": "docs/",
+}

@@ -1,7 +1,71 @@
 # ehr2rl
 
 `ehr2rl` turns MIMIC-IV-style electronic health record data into datasets ready
-for offline reinforcement learning research.
+for offline reinforcement learning research. It loads longitudinal EHR tables,
+represents patient trajectories, shapes rewards, estimates observed clinician
+behavior, and exports data for tools such as `d3rlpy`.
+
+```bash
+pip install ehr2rl
+```
+
+## Synthetic quickstart
+
+This example needs only the base install. No MIMIC-IV access or cloud
+credentials are required.
+
+```python
+from ehr2rl import BehaviorPolicy, MortalityReward, make_synthetic_dataset
+
+ds = make_synthetic_dataset(n_patients=25, trajectory_length=24, seed=7)
+policy = BehaviorPolicy().fit(ds)
+ds = MortalityReward().shape(ds)
+
+print(f"{len(ds)} trajectories")                    # 25 trajectories
+print(ds[0].states.shape)                           # (24, 4)
+print(policy.predict_proba(ds[0].states).shape)     # (24, 2)
+```
+
+## Where to go next
+
+::::{container} role-links
+
+:::{container} role-link
+### Researchers
+
+Build datasets for offline RL experiments.
+
+- Installation and optional extras
+- MIMIC-IV v3.1 through BigQuery, with cost guards
+- Actions, rewards, behavior policy, and export
+- Dataset model, provenance, and limitations
+:::
+
+:::{container} role-link
+### Contributors
+
+Maintain and extend the library.
+
+- Development setup and quality checks
+- Architecture and data flow
+- Testing conventions
+- Adding features, actions, rewards, and exporters
+:::
+
+::::
+
+Both paths share one **API reference**.
+
+[GitHub](https://github.com/pinktownscavenger/ehr2rl) ·
+[PyPI](https://pypi.org/project/ehr2rl/) ·
+[Issues](https://github.com/pinktownscavenger/ehr2rl/issues)
+
+:::{important}
+`ehr2rl` is research infrastructure. It is not clinical decision support and
+does not validate treatment recommendations. It does not ship or provide access
+to MIMIC-IV: obtain clinical data through credentialed channels such as
+PhysioNet and follow the applicable data use agreements.
+:::
 
 ```{toctree}
 :hidden:

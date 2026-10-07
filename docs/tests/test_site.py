@@ -38,3 +38,24 @@ def built_site(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 def test_strict_build_creates_index(built_site: Path) -> None:
     assert (built_site / "index.html").is_file()
+
+
+def test_landing_page_has_equal_audience_paths(built_site: Path) -> None:
+    html = (built_site / "index.html").read_text(encoding="utf-8")
+    for text in (
+        "Researchers",
+        "Contributors",
+        "Synthetic quickstart",
+        "API reference",
+        "search",
+        "research infrastructure",
+        "not clinical decision support",
+    ):
+        assert text in html, f"landing page is missing {text!r}"
+
+
+def test_landing_css_has_accessibility_states() -> None:
+    css = (DOCS_DIR / "_static" / "custom.css").read_text(encoding="utf-8")
+    assert ":focus-visible" in css
+    assert "max-width: 320px" in css
+    assert "@import" not in css
