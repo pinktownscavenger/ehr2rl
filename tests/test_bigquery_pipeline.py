@@ -80,6 +80,37 @@ def test_bigquery_pipeline_attaches_query_hashes_and_job_ids():
     assert provenance["query_hash"] == "hash_admissions:hash_vitals:hash_inputevents"
 
 
+def test_bigquery_pipeline_gives_every_trajectory_identical_provenance():
+    from ehr2rl.bigquery import (
+        BigQueryCohort,
+        CohortCriteria,
+        load_mimiciv_bigquery_dataset,
+    )
+
+    fake_client = _fake_client()
+    fake_client.tables["admissions"] = pd.DataFrame(
+        {
+            "subject_id": [1, 2, 3],
+            "hadm_id": [10, 20, 30],
+            "admittime": pd.to_datetime(["2026-01-01 00:00:00"] * 3),
+            "dischtime": pd.to_datetime(["2026-01-02 00:00:00"] * 3),
+            "hospital_expire_flag": [0, 1, 0],
+        }
+    )
+
+    ds = load_mimiciv_bigquery_dataset(
+        client=fake_client,
+        cohort=BigQueryCohort(CohortCriteria(cohort_size=3)),
+        preset=_test_preset(),
+        itemid_map=_test_itemid_map(),
+        action_config=_test_action_config(),
+    )
+
+    assert len(ds) == 3
+    first = ds[0].metadata["provenance"]
+    assert all(trajectory.metadata["provenance"] == first for trajectory in ds)
+
+
 def test_bigquery_pipeline_validates_itemid_labels_before_extraction():
     from ehr2rl.bigquery import (
         BigQueryCohort,

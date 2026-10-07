@@ -88,6 +88,13 @@ def load_mimiciv_bigquery_dataset(
     ds.tables["inputevents"] = inputevents
     ds.trajectories = build_state_matrix(ds.tables)
 
+    # One record per load: every trajectory must share it, timestamp included.
+    provenance = _provenance(
+        query_results,
+        itemid_map=itemid_map,
+        preset=preset,
+        cohort=cohort,
+    )
     for trajectory in ds:
         trajectory.actions = build_medication_actions(
             _events_for_trajectory(inputevents, trajectory.subject_id, trajectory.admission_id),
@@ -99,12 +106,7 @@ def load_mimiciv_bigquery_dataset(
             action_config.vasopressor_bins.n_bins,
             action_config.fluid_bins.n_bins,
         ]
-        trajectory.metadata["provenance"] = _provenance(
-            query_results,
-            itemid_map=itemid_map,
-            preset=preset,
-            cohort=cohort,
-        )
+        trajectory.metadata["provenance"] = dict(provenance)
 
     return ds
 
