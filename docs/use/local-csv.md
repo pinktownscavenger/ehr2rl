@@ -4,7 +4,7 @@
 This path is kept for offline and backward-compatible workflows. It is
 **frozen** at its v0.1 demo-schema behavior and does not receive itemid maps,
 feature presets, label validation, or medication actions. For MIMIC-IV v3.1,
-use the BigQuery workflow instead.
+use the [BigQuery workflow](bigquery.md) instead.
 :::
 
 ## What it does

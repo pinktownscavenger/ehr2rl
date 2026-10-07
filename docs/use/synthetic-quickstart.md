@@ -56,6 +56,7 @@ original dataset is not modified.
 
 ## Next steps
 
-- Export to `d3rlpy` with `pip install "ehr2rl[d3rlpy]"` and `to_d3rlpy(ds)`.
-- Use two-column medication actions in synthetic data with
+- [Export to `d3rlpy`](export.md) for offline RL training.
+- Try two-column [medication actions](actions.md) in synthetic data with
   `make_synthetic_dataset(include_medication_metadata=True)`.
+- Move to real data with [MIMIC-IV through BigQuery](bigquery.md).

@@ -20,6 +20,7 @@ extensions = [
 
 source_suffix = {".md": "markdown"}
 myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 3
 root_doc = "index"
 exclude_patterns = ["_build", "tests"]
 
