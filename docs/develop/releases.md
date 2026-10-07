@@ -30,13 +30,16 @@ PyPI from a manual run.
 ## Documentation deployment
 
 The `Docs` workflow (`.github/workflows/docs.yml`) runs on every pull request
-and every push:
+and every push to `main`:
 
-- **Pull requests and branches** build the site strictly and run the
-  documentation tests. Nothing is deployed, and the job has read-only
-  permissions.
-- **Pushes to `main`** also upload the built site and deploy it to GitHub Pages
-  at <https://pinktownscavenger.github.io/ehr2rl/>.
+- **Pull requests** build the site strictly and run the documentation tests.
+  Nothing is deployed, and the job has read-only permissions.
+- **Pushes to `main`** do the same, then upload the built site and deploy it to
+  GitHub Pages at <https://pinktownscavenger.github.io/ehr2rl/>. Only this
+  deploy job has Pages write access.
+
+Pages must be set to deploy from **GitHub Actions** in the repository's
+settings.
 
 The site always shows the latest `main`. There is no per-version documentation
 yet, so the docs can briefly describe unreleased behavior between a merge and

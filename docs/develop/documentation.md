@@ -13,11 +13,12 @@ With the `docs` extra installed in a Python 3.12 environment:
 .venv-docs/bin/python -m http.server 8000 --directory docs/_build/html
 ```
 
-Then open <http://localhost:8000>. `docs/_build/` is ignored by Git; never
+Then open `http://localhost:8000`. `docs/_build/` is ignored by Git; never
 commit built HTML.
 
-The build downloads Python, NumPy, and pandas object inventories to link type
-names, so it needs network access.
+Type names link to the Python, NumPy, and pandas docs through object
+inventories committed in `docs/_intersphinx/`, so the build works offline. Refresh
+those files occasionally; the command is in `docs/conf.py`.
 
 ## Warnings are errors
 
@@ -84,6 +85,6 @@ API pages are curated, not generated recursively. To document a public object:
 ```
 
 The documentation workflow builds the site strictly and runs these tests on
-every pull request and push. Merges to `main` deploy the site to GitHub Pages.
-A separate workflow checks external links weekly; broken links there do not
-block pull requests. See [Releases](releases.md).
+every pull request and every push to `main`. Merges to `main` deploy the site
+to GitHub Pages. A separate workflow checks external links weekly; broken links
+there do not block pull requests. See [Releases](releases.md).
