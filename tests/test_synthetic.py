@@ -50,3 +50,15 @@ def test_make_synthetic_dataset_rejects_invalid_sizes():
 
     with pytest.raises(ValueError, match="trajectory_length"):
         make_synthetic_dataset(trajectory_length=1)
+
+
+def test_synthetic_actions_declare_their_discrete_sizes():
+    from ehr2rl import make_synthetic_dataset
+
+    single = make_synthetic_dataset(n_patients=1, trajectory_length=3)
+    medication = make_synthetic_dataset(
+        n_patients=1, trajectory_length=3, include_medication_metadata=True
+    )
+
+    assert single[0].metadata["action_sizes"] == [2]
+    assert medication[0].metadata["action_sizes"] == [2, 2]

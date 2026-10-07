@@ -63,7 +63,16 @@ def load_mimiciv_bigquery_dataset(
         inputevents = inputevents_result.dataframe
     else:
         inputevents = pd.DataFrame(
-            columns=["starttime", "endtime", "itemid", "rate", "amount", "statusdescription"]
+            columns=[
+                "starttime",
+                "endtime",
+                "itemid",
+                "rate",
+                "rateuom",
+                "patientweight",
+                "amount",
+                "statusdescription",
+            ]
         )
 
     features = (
@@ -85,6 +94,11 @@ def load_mimiciv_bigquery_dataset(
             trajectory.timestamps,
             config=action_config,
         )
+        trajectory.metadata["action_names"] = ["vasopressor_bin", "fluid_bin"]
+        trajectory.metadata["action_sizes"] = [
+            action_config.vasopressor_bins.n_bins,
+            action_config.fluid_bins.n_bins,
+        ]
         trajectory.metadata["provenance"] = _provenance(
             query_results,
             itemid_map=itemid_map,

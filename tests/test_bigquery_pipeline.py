@@ -51,6 +51,8 @@ def test_bigquery_pipeline_builds_dataset_from_mocked_tables():
     assert len(ds) == 1
     assert ds[0].metadata["feature_names"] == ["heart_rate"]
     assert ds[0].metadata["provenance"]["itemid_map_version"] == "v3_1"
+    assert ds[0].metadata["action_names"] == ["vasopressor_bin", "fluid_bin"]
+    assert ds[0].metadata["action_sizes"] == [4, 4]
 
 
 def test_bigquery_pipeline_attaches_query_hashes_and_job_ids():

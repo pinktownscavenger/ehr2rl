@@ -17,7 +17,7 @@ def main() -> None:
         raise SystemExit("Set EHR2RL_BIGQUERY_BILLING_PROJECT before running this example.")
 
     try:
-        from d3rlpy.algos import IQLConfig
+        from d3rlpy.algos import DiscreteCQLConfig
         from google.cloud import bigquery
     except ImportError as exc:
         raise SystemExit(
@@ -56,7 +56,8 @@ def main() -> None:
     dataset = reward.shape(dataset)
     mdp_dataset = to_d3rlpy(dataset, provenance_path="bigquery_to_d3rlpy.provenance.json")
 
-    algorithm = IQLConfig().create(device=False)
+    # Medication actions are discrete dose bins, exported as one joint action.
+    algorithm = DiscreteCQLConfig().create(device=False)
     algorithm.fit(mdp_dataset, n_steps=1)
 
 

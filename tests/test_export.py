@@ -65,3 +65,86 @@ def test_to_d3rlpy_writes_sidecar_when_metadata_present(tmp_path):
     to_d3rlpy(ds, provenance_path=tmp_path / "sidecar.json")
 
     assert (tmp_path / "sidecar.json").exists()
+
+
+def test_arrays_for_d3rlpy_encodes_multi_column_actions_as_joint_index():
+    import numpy as np
+
+    ds = MortalityReward().shape(
+        make_synthetic_dataset(
+            n_patients=3, trajectory_length=5, seed=2, include_medication_metadata=True
+        )
+    )
+    raw = np.vstack([t.actions for t in ds])
+
+    _, actions, _, _ = arrays_for_d3rlpy(ds)
+
+    assert actions.shape == (15, 1)
+    assert actions[:, 0].tolist() == (raw[:, 0] * 2 + raw[:, 1]).tolist()
+
+
+def test_arrays_for_d3rlpy_rejects_multi_column_integer_actions_without_sizes():
+    ds = make_synthetic_dataset(
+        n_patients=1, trajectory_length=3, include_medication_metadata=True
+    )
+    del ds[0].metadata["action_sizes"]
+
+    with pytest.raises(ValueError, match="action_sizes"):
+        arrays_for_d3rlpy(ds)
+
+
+def test_arrays_for_d3rlpy_rejects_actions_outside_declared_sizes():
+    ds = make_synthetic_dataset(
+        n_patients=1, trajectory_length=3, include_medication_metadata=True
+    )
+    ds[0].actions[0, 1] = 5
+
+    with pytest.raises(ValueError, match="outside"):
+        arrays_for_d3rlpy(ds)
+
+
+def test_arrays_for_d3rlpy_rejects_mismatched_action_sizes():
+    ds = make_synthetic_dataset(
+        n_patients=2, trajectory_length=3, include_medication_metadata=True
+    )
+    ds[1].metadata["action_sizes"] = [3, 2]
+
+    with pytest.raises(ValueError, match="same action_sizes"):
+        arrays_for_d3rlpy(ds)
+
+
+def test_arrays_for_d3rlpy_passes_continuous_actions_through():
+    import numpy as np
+
+    ds = make_synthetic_dataset(n_patients=2, trajectory_length=3)
+    for trajectory in ds:
+        trajectory.actions = np.full((3, 2), 0.25)
+
+    _, actions, _, _ = arrays_for_d3rlpy(ds)
+
+    assert actions.shape == (6, 2)
+    assert actions.dtype.kind == "f"
+
+
+def test_to_d3rlpy_declares_full_joint_action_space_and_trains_discrete_algorithm():
+    d3rlpy = pytest.importorskip("d3rlpy")
+    from d3rlpy.constants import ActionSpace
+
+    ds = MortalityReward().shape(
+        make_synthetic_dataset(
+            n_patients=4, trajectory_length=6, seed=3, include_medication_metadata=True
+        )
+    )
+
+    mdp_dataset = to_d3rlpy(ds)
+
+    assert mdp_dataset.dataset_info.action_space == ActionSpace.DISCRETE
+    assert mdp_dataset.dataset_info.action_size == 4
+    algorithm = d3rlpy.algos.DiscreteCQLConfig(batch_size=4).create(device=False)
+    algorithm.fit(
+        mdp_dataset,
+        n_steps=1,
+        n_steps_per_epoch=1,
+        logger_adapter=d3rlpy.logging.NoopAdapterFactory(),
+        show_progress=False,
+    )
