@@ -148,3 +148,26 @@ def test_to_d3rlpy_declares_full_joint_action_space_and_trains_discrete_algorith
         logger_adapter=d3rlpy.logging.NoopAdapterFactory(),
         show_progress=False,
     )
+
+
+def test_replaced_actions_error_explains_how_to_update_action_sizes():
+    import numpy as np
+
+    ds = make_synthetic_dataset(n_patients=1, trajectory_length=3)
+    ds[0].actions = np.array([[0], [1], [2]])
+
+    with pytest.raises(ValueError, match=r"update metadata\['action_sizes'\]"):
+        arrays_for_d3rlpy(ds)
+
+
+def test_column_count_mismatch_error_explains_how_to_update_action_sizes():
+    import numpy as np
+
+    ds = make_synthetic_dataset(
+        n_patients=1, trajectory_length=3, include_medication_metadata=True
+    )
+    sizes = ds[0].metadata["action_sizes"]
+    ds[0].actions = np.ravel_multi_index(tuple(ds[0].actions.T), sizes).reshape(-1, 1)
+
+    with pytest.raises(ValueError, match=r"update metadata\['action_sizes'\]"):
+        arrays_for_d3rlpy(ds)

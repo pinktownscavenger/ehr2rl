@@ -103,6 +103,12 @@ def _export_arrays(
     return observations, actions, rewards, terminals, action_size
 
 
+_REPLACED_ACTIONS_HINT = (
+    "If you replaced trajectory actions, update metadata['action_sizes'] on every "
+    "trajectory to match them."
+)
+
+
 def _encode_actions(dataset: EHRDataset) -> tuple[np.ndarray, int | None]:
     actions = np.vstack([trajectory.actions for trajectory in dataset])
     if not np.issubdtype(actions.dtype, np.integer):
@@ -123,14 +129,15 @@ def _encode_actions(dataset: EHRDataset) -> tuple[np.ndarray, int | None]:
     sizes = tuple(int(size) for size in first)
     if len(sizes) != actions.shape[1]:
         raise ValueError(
-            f"action_sizes {list(sizes)} does not match {actions.shape[1]} action columns."
+            f"action_sizes {list(sizes)} does not match {actions.shape[1]} action "
+            f"columns. {_REPLACED_ACTIONS_HINT}"
         )
     for column, size in enumerate(sizes):
         values = actions[:, column]
         if values.min() < 0 or values.max() >= size:
             raise ValueError(
                 f"Action column {column} has values outside 0..{size - 1} "
-                "declared by action_sizes."
+                f"declared by action_sizes. {_REPLACED_ACTIONS_HINT}"
             )
 
     joint = np.ravel_multi_index(tuple(actions.T), sizes)
