@@ -47,11 +47,15 @@ def test_landing_page_has_equal_audience_paths(built_site: Path) -> None:
         "Contributors",
         "Synthetic quickstart",
         "API reference",
-        "search",
         "research infrastructure",
         "not clinical decision support",
     ):
         assert text in html, f"landing page is missing {text!r}"
+
+    # Global search: Furo's search form, plus the index it queries.
+    assert 'role="search"' in html and 'action="search.html"' in html
+    assert 'name="q"' in html
+    assert (built_site / "searchindex.js").is_file()
 
 
 def test_landing_css_has_accessibility_states() -> None:
