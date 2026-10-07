@@ -12,7 +12,8 @@ pip install ehr2rl
 ## Synthetic quickstart
 
 This example needs only the base install. No MIMIC-IV access or cloud
-credentials are required.
+credentials are required. The [full quickstart](use/synthetic-quickstart.md)
+explains each step.
 
 ```python
 from ehr2rl import BehaviorPolicy, MortalityReward, make_synthetic_dataset
@@ -35,7 +36,7 @@ print(policy.predict_proba(ds[0].states).shape)     # (24, 2)
 
 Build datasets for offline RL experiments.
 
-- Installation and optional extras
+- [Installation and optional extras](use/installation.md)
 - MIMIC-IV v3.1 through BigQuery, with cost guards
 - Actions, rewards, behavior policy, and export
 - Dataset model, provenance, and limitations
@@ -69,4 +70,15 @@ PhysioNet and follow the applicable data use agreements.
 
 ```{toctree}
 :hidden:
+:caption: Get started
+
+use/installation
+use/synthetic-quickstart
+```
+
+```{toctree}
+:hidden:
+:caption: Use ehr2rl
+
+use/local-csv
 ```
