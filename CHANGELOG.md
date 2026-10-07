@@ -14,6 +14,10 @@ All notable changes to `ehr2rl` will be documented in this file.
   MIMIC-IV records vasopressin in units/hour, but the 2.5 factor applies per
   unit/min. Recorded `rateuom` is now converted before the factor is applied,
   including weight-normalizing mcg/min rates with `patientweight`.
+- BigQuery datasets with more than one admission could not be exported with a
+  provenance sidecar: each trajectory got its own extraction timestamp, so
+  `to_d3rlpy(..., provenance_path=...)` rejected them as mismatched. Provenance
+  is now computed once per load.
 
 ### Changed
 
