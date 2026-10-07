@@ -118,6 +118,8 @@ SELECT
   ie.itemid,
   ie.amount,
   ie.rate,
+  ie.rateuom,
+  ie.patientweight,
   ie.statusdescription
 FROM `{ICU_TABLE}.inputevents` AS ie
 JOIN cohort AS c

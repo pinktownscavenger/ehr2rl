@@ -28,6 +28,14 @@ class DoseBins:
         if self.labels is not None and len(self.labels) != len(self.edges) + 1:
             raise ValueError("labels must contain len(edges) + 1 values.")
 
+    @property
+    def n_bins(self) -> int:
+        """Number of discrete values ``assign`` can return (largest label + 1)."""
+
+        if self.labels is None:
+            return len(self.edges) + 1
+        return max(self.labels) + 1
+
     def assign(self, values: np.ndarray | pd.Series) -> np.ndarray:
         """Return one bin label per dose value."""
 

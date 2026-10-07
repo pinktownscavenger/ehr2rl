@@ -38,3 +38,12 @@ def test_bigquery_cohort_rejects_unsupported_mimic_version():
 
     with pytest.raises(ValueError, match="mimic_version"):
         BigQueryCohort(CohortCriteria(cohort_size=10), mimic_version="2_2")
+
+
+def test_inputevents_sql_selects_rate_unit_and_weight():
+    from ehr2rl.bigquery import BigQueryCohort, CohortCriteria
+
+    sql = BigQueryCohort(CohortCriteria(cohort_size=10)).inputevents_sql([1])
+
+    assert "ie.rateuom" in sql
+    assert "ie.patientweight" in sql

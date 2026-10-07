@@ -2,6 +2,37 @@
 
 All notable changes to `ehr2rl` will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- `to_d3rlpy` now exports two-column medication actions as one discrete joint
+  action with the full declared action space (`vasopressor_bins.n_bins *
+  fluid_bins.n_bins`). Previously d3rlpy inferred a wrong action size, so
+  continuous algorithms rejected the dataset and discrete algorithms crashed.
+- Vasopressin norepinephrine equivalents were about 60 times too high:
+  MIMIC-IV records vasopressin in units/hour, but the 2.5 factor applies per
+  unit/min. Recorded `rateuom` is now converted before the factor is applied,
+  including weight-normalizing mcg/min rates with `patientweight`.
+
+### Changed
+
+- Vasopressor rows with a rate unit that cannot be converted now raise
+  `ValueError` instead of producing a dose in the wrong unit.
+- Multi-column integer actions without `metadata["action_sizes"]` now raise
+  `ValueError` on export instead of producing an untrainable dataset.
+- The BigQuery inputevents query also selects `rateuom` and `patientweight`,
+  which changes its cache key, so cached inputevents results are re-queried once.
+- `examples/bigquery_to_d3rlpy.py` trains `DiscreteCQL` instead of `IQL`.
+
+### Added
+
+- `DoseBins.n_bins` and `VasopressorConversion.rate_unit` (default
+  `"mcg/kg/min"`).
+- Trajectories from the BigQuery pipeline and the synthetic generator record
+  `metadata["action_sizes"]`; BigQuery trajectories also record
+  `metadata["action_names"]`.
+
 ## 0.2.0 - 2026-09-24
 
 ### Added

@@ -48,9 +48,11 @@ def make_synthetic_dataset(
             "died": died,
             "feature_names": ["heart_rate", "mean_bp", "lactate", "creatinine"],
             "sofa_scores": sofa_scores,
+            "action_sizes": [2],
         }
         if include_medication_metadata:
             metadata["action_names"] = ["vasopressor_bin", "fluid_bin"]
+            metadata["action_sizes"] = [2, 2]
 
         trajectories.append(
             PatientTrajectory(
