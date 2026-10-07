@@ -10,14 +10,41 @@ from ehr2rl.data.loaders import EHRValidationError
 
 @dataclass(frozen=True)
 class FeaturePreset:
-    """Named bundle of canonical feature concepts."""
+    """A named set of canonical concepts to use as state features.
+
+    Parameters
+    ----------
+    name
+        Preset name, recorded in provenance.
+    concepts
+        Canonical concept names. Each must exist in the itemid map.
+    aggregation
+        Intended time resolution. Not currently applied: BigQuery states use
+        each distinct chart time.
+    """
 
     name: str
     concepts: tuple[str, ...]
     aggregation: str = "1h"
 
     def resolve(self, itemid_map: ItemIdMap) -> dict[str, list[ItemIdEntry]]:
-        """Resolve canonical concept names to raw itemid entries."""
+        """Map each concept to its itemid entries.
+
+        Parameters
+        ----------
+        itemid_map
+            Map to look the concepts up in.
+
+        Returns
+        -------
+        dict[str, list[ItemIdEntry]]
+            Entries for each concept, in preset order.
+
+        Raises
+        ------
+        EHRValidationError
+            If a concept is missing from the map.
+        """
 
         missing = [
             concept
@@ -79,7 +106,18 @@ _PRESETS = {
 
 
 def get_feature_preset(name: str) -> FeaturePreset:
-    """Return a built-in feature preset by name."""
+    """Return a built-in feature preset by name.
+
+    Parameters
+    ----------
+    name
+        ``"vitals_only"``, ``"sepsis3_core"``, or ``"full"``.
+
+    Raises
+    ------
+    EHRValidationError
+        If the name is unknown.
+    """
 
     try:
         return _PRESETS[name]

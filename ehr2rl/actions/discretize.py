@@ -15,6 +15,18 @@ class DoseBins:
     Bin 0 is reserved for exactly zero or lower values. Positive values are
     assigned with ``numpy.searchsorted(..., side="right")`` so edge values fall
     into the higher bin.
+
+    Parameters
+    ----------
+    edges
+        Bin edges in ascending order. At least one is required.
+    labels
+        Optional output label for each bin, with ``len(edges) + 1`` values.
+
+    Raises
+    ------
+    ValueError
+        If ``edges`` is empty or unsorted, or ``labels`` has the wrong length.
     """
 
     edges: tuple[float, ...]
@@ -37,7 +49,18 @@ class DoseBins:
         return max(self.labels) + 1
 
     def assign(self, values: np.ndarray | pd.Series) -> np.ndarray:
-        """Return one bin label per dose value."""
+        """Return one bin label per dose value.
+
+        Parameters
+        ----------
+        values
+            Doses, in any shape.
+
+        Returns
+        -------
+        numpy.ndarray
+            Integer labels with the same shape as ``values``.
+        """
 
         array = np.asarray(values, dtype=float)
         bins = np.searchsorted(np.asarray(self.edges, dtype=float), array, side="right")

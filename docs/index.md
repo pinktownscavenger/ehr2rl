@@ -56,7 +56,7 @@ Maintain and extend the library.
 
 ::::
 
-Both paths share one **API reference**.
+Both paths share one [API reference](api/index.md).
 
 [GitHub](https://github.com/pinktownscavenger/ehr2rl) ·
 [PyPI](https://pypi.org/project/ehr2rl/) ·
@@ -87,4 +87,11 @@ use/rewards
 use/behavior-policy
 use/export
 use/local-csv
+```
+
+```{toctree}
+:hidden:
+:caption: Reference
+
+api/index
 ```

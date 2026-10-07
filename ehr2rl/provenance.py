@@ -7,10 +7,28 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+__all__ = ["DatasetProvenance", "read_provenance", "write_provenance"]
+
 
 @dataclass(frozen=True)
 class DatasetProvenance:
-    """Metadata needed to reproduce a BigQuery-backed dataset extraction."""
+    """Metadata needed to reproduce a BigQuery-backed dataset extraction.
+
+    Parameters
+    ----------
+    bigquery_job_ids
+        IDs of the BigQuery jobs that ran. Cached queries have none.
+    query_hash
+        Cache keys of every query in the load, joined with ``":"``.
+    itemid_map_version
+        Version of the itemid map used.
+    feature_preset
+        Name of the feature preset used.
+    extraction_timestamp
+        UTC time of the extraction, in ISO 8601 format.
+    mimic_version
+        MIMIC-IV version, such as ``"3.1"``.
+    """
 
     bigquery_job_ids: tuple[str, ...]
     query_hash: str
@@ -21,7 +39,15 @@ class DatasetProvenance:
 
 
 def write_provenance(path: str | Path, provenance: DatasetProvenance) -> None:
-    """Write provenance metadata as JSON."""
+    """Write provenance metadata to a JSON file.
+
+    Parameters
+    ----------
+    path
+        File to write. An existing file is replaced.
+    provenance
+        Metadata to write.
+    """
 
     data = asdict(provenance)
     data["bigquery_job_ids"] = list(provenance.bigquery_job_ids)
@@ -29,7 +55,23 @@ def write_provenance(path: str | Path, provenance: DatasetProvenance) -> None:
 
 
 def read_provenance(path: str | Path) -> DatasetProvenance:
-    """Read and validate provenance metadata from JSON."""
+    """Read provenance metadata from a JSON file.
+
+    Parameters
+    ----------
+    path
+        File written by `write_provenance`.
+
+    Returns
+    -------
+    DatasetProvenance
+        The metadata.
+
+    Raises
+    ------
+    ValueError
+        If a required field is missing.
+    """
 
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     return provenance_from_mapping(data)

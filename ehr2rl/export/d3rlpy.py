@@ -20,6 +20,30 @@ def to_d3rlpy(dataset: EHRDataset, provenance_path: str | Path | None = None):
     columns are combined into one joint index in row-major order; recover the
     per-column bins with ``numpy.unravel_index(action, action_sizes)``.
     Floating-point actions are exported unchanged as continuous actions.
+
+    Parameters
+    ----------
+    dataset
+        Non-empty dataset with rewards already shaped.
+    provenance_path
+        Where to write a JSON provenance sidecar. Every trajectory must carry
+        the same ``metadata["provenance"]``.
+
+    Returns
+    -------
+    d3rlpy.dataset.MDPDataset
+        One episode per trajectory.
+
+    Raises
+    ------
+    ImportError
+        If the ``d3rlpy`` extra is not installed.
+    ValueError
+        If the dataset is empty, multi-column integer actions lack
+        ``action_sizes``, sizes differ between trajectories, or an action is
+        outside its declared size.
+    TypeError
+        If ``provenance_path`` is given and a trajectory has no provenance.
     """
 
     try:

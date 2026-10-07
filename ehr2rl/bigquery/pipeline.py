@@ -22,7 +22,43 @@ def load_mimiciv_bigquery_dataset(
     itemid_map: ItemIdMap,
     action_config: ActionConfig,
 ) -> EHRDataset:
-    """Load a BigQuery-backed MIMIC-IV cohort into an ``EHRDataset``."""
+    """Load a bounded MIMIC-IV cohort from BigQuery into an ``EHRDataset``.
+
+    Validates the itemid map against live labels, then queries admissions, the
+    preset's chartevents and labevents, and inputevents for medication actions.
+    Every query goes through ``client``'s budget guard.
+
+    Parameters
+    ----------
+    client
+        Guarded client that runs every query.
+    cohort
+        Cohort definition.
+    preset
+        Concepts to use as state features.
+    itemid_map
+        Itemid map for features and medications. All of its itemids are
+        validated.
+    action_config
+        Bins and windows for medication actions.
+
+    Returns
+    -------
+    EHRDataset
+        One trajectory per admission, with metadata ``died``,
+        ``feature_names``, ``action_names``, ``action_sizes``, and
+        ``provenance``.
+
+    Raises
+    ------
+    EHRValidationError
+        If the map's labels differ from MIMIC-IV or the preset names a missing
+        concept.
+    BudgetExceededError
+        If any query's dry run exceeds the byte cap.
+    BigQueryAuthError
+        If any query fails.
+    """
 
     resolved = preset.resolve(itemid_map)
     feature_entries = [entry for entries in resolved.values() for entry in entries]

@@ -14,7 +14,19 @@ from ehr2rl.bigquery.errors import BigQueryAuthError, BudgetExceededError
 
 @dataclass(frozen=True)
 class QueryResult:
-    """Dataframe plus BigQuery execution metadata."""
+    """A query's results plus BigQuery execution metadata.
+
+    Parameters
+    ----------
+    dataframe
+        Query results.
+    job_id
+        BigQuery job ID, or ``None`` when the result came from the local cache.
+    bytes_processed
+        Dry-run estimate of bytes processed; ``0`` for cached results.
+    query_hash
+        SHA-256 cache key of the SQL and cache key parts.
+    """
 
     dataframe: pd.DataFrame
     job_id: str | None
@@ -23,7 +35,28 @@ class QueryResult:
 
 
 class GuardedBigQueryClient:
-    """Run BigQuery queries only after an explicit dry-run budget check."""
+    """Run BigQuery queries only after a dry-run budget check.
+
+    Parameters
+    ----------
+    client
+        A ``google.cloud.bigquery.Client``.
+    maximum_bytes_billed
+        Per-query byte cap. A query whose dry run exceeds it is not run, and the
+        cap is also set on each job so BigQuery enforces it server-side.
+    cache_dir
+        Directory for cached results, created if missing. Results are not
+        cached when ``None``.
+    query_timeout
+        Seconds to wait for each API call and result download. Must be positive.
+    disable_retries
+        Turn off the Google client's automatic retries.
+
+    Raises
+    ------
+    ValueError
+        If ``maximum_bytes_billed`` or ``query_timeout`` is not positive.
+    """
 
     def __init__(
         self,
@@ -51,7 +84,28 @@ class GuardedBigQueryClient:
         *,
         cache_key_parts: tuple[str, ...] = (),
     ) -> QueryResult:
-        """Return a dataframe for ``sql`` after dry-run and cache checks."""
+        """Run ``sql`` after cache and dry-run checks and return its results.
+
+        Parameters
+        ----------
+        sql
+            Standard SQL query.
+        cache_key_parts
+            Extra strings mixed into the cache key, such as a map version.
+
+        Returns
+        -------
+        QueryResult
+            The results and execution metadata.
+
+        Raises
+        ------
+        BudgetExceededError
+            If the dry-run estimate exceeds ``maximum_bytes_billed``.
+        BigQueryAuthError
+            If the dry run or query fails for any reason, including credentials,
+            permissions, invalid SQL, and timeouts.
+        """
 
         query_hash = _query_hash(sql, cache_key_parts)
         cached = self._read_cache(query_hash)

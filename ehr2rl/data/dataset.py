@@ -15,7 +15,39 @@ from ehr2rl.data.loaders import load_admissions, load_labs, load_vitals
 
 @dataclass
 class PatientTrajectory:
-    """One time-indexed patient episode."""
+    """One patient's episode as aligned per-timestep arrays.
+
+    ``T`` is the number of timesteps, ``D`` the number of state features, and
+    ``A`` the number of action columns. Arrays are converted to NumPy and their
+    shapes validated on construction; a one-dimensional ``actions`` array is
+    reshaped to ``(T, 1)``.
+
+    Parameters
+    ----------
+    subject_id
+        MIMIC-IV ``subject_id``, as a string.
+    admission_id
+        MIMIC-IV ``hadm_id``, as a string.
+    timestamps
+        Shape ``(T,)``. Unix time in seconds for each step.
+    states
+        Shape ``(T, D)``, float. Column names are in
+        ``metadata["feature_names"]`` when known.
+    actions
+        Shape ``(T, A)``.
+    rewards
+        Shape ``(T,)``, float.
+    terminals
+        Shape ``(T,)``, bool. ``True`` where the episode ends.
+    metadata
+        Per-trajectory information such as ``died``, ``feature_names``,
+        ``action_names``, ``action_sizes``, ``sofa_scores``, and ``provenance``.
+
+    Raises
+    ------
+    ValueError
+        If there are no timesteps or an array has the wrong shape.
+    """
 
     subject_id: str
     admission_id: str
@@ -36,9 +68,23 @@ class PatientTrajectory:
 
     @property
     def n_steps(self) -> int:
+        """Number of timesteps ``T``."""
         return int(self.timestamps.shape[0])
 
     def with_rewards(self, rewards: np.ndarray) -> PatientTrajectory:
+        """Return a copy of this trajectory with different rewards.
+
+        Parameters
+        ----------
+        rewards
+            Shape ``(T,)``. Converted to float.
+
+        Returns
+        -------
+        PatientTrajectory
+            A new, validated trajectory. ``metadata`` is shared with this one,
+            not copied.
+        """
         return replace(self, rewards=np.asarray(rewards, dtype=float))
 
     def _validate_shapes(self) -> None:
@@ -62,7 +108,28 @@ class PatientTrajectory:
 
 
 class EHRDataset:
-    """Collection of patient trajectories with a chainable preprocessing API."""
+    """A collection of patient trajectories.
+
+    Supports ``len()``, iteration, and integer indexing over its trajectories.
+    The ``load_*`` and ``featurize`` methods implement the frozen local CSV
+    path. They modify the dataset in place and return it, so calls can be
+    chained.
+
+    Parameters
+    ----------
+    root
+        Directory of MIMIC-IV-style CSV tables. Needed only by the ``load_*``
+        methods.
+    trajectories
+        Initial trajectories.
+
+    Attributes
+    ----------
+    trajectories
+        The trajectories, as a list.
+    tables
+        Raw tables loaded by the ``load_*`` methods, keyed by name.
+    """
 
     def __init__(
         self,
@@ -83,11 +150,44 @@ class EHRDataset:
         return self.trajectories[index]
 
     def copy_with(self, trajectories: Iterable[PatientTrajectory]) -> EHRDataset:
+        """Return a new dataset with this one's root and tables but other trajectories.
+
+        Parameters
+        ----------
+        trajectories
+            Trajectories for the new dataset.
+
+        Returns
+        -------
+        EHRDataset
+            A new dataset. The ``tables`` mapping is copied; the tables
+            themselves are shared.
+        """
         ds = EHRDataset(root=self.root, trajectories=trajectories)
         ds.tables = dict(self.tables)
         return ds
 
     def load_admissions(self, filename: str = "hosp/admissions.csv.gz") -> EHRDataset:
+        """Load the admissions table from ``root``.
+
+        Parameters
+        ----------
+        filename
+            Path relative to ``root``. If it does not exist, ``admissions.csv``
+            is tried instead.
+
+        Returns
+        -------
+        EHRDataset
+            This dataset, for chaining.
+
+        Raises
+        ------
+        EHRValidationError
+            If the file is missing or lacks required columns.
+        ValueError
+            If ``root`` is not set.
+        """
         self.tables["admissions"] = load_admissions(
             self._table_path(filename, fallback="admissions.csv")
         )
@@ -96,6 +196,28 @@ class EHRDataset:
     def load_vitals(
         self, filename: str = "icu/chartevents.csv.gz", resample: str = "1h"
     ) -> EHRDataset:
+        """Load ICU chart events from ``root`` and average them into time bins.
+
+        Parameters
+        ----------
+        filename
+            Path relative to ``root``. If it does not exist, ``vitals.csv`` is
+            tried instead.
+        resample
+            Bin width as a pandas frequency string.
+
+        Returns
+        -------
+        EHRDataset
+            This dataset, for chaining.
+
+        Raises
+        ------
+        EHRValidationError
+            If the file is missing or lacks required columns.
+        ValueError
+            If ``root`` is not set or a value is not numeric.
+        """
         self.tables["vitals"] = load_vitals(
             self._table_path(filename, fallback="vitals.csv")
         )
@@ -105,6 +227,28 @@ class EHRDataset:
     def load_labs(
         self, filename: str = "hosp/labevents.csv.gz", codes: list[str] | None = None
     ) -> EHRDataset:
+        """Load lab events from ``root``.
+
+        Parameters
+        ----------
+        filename
+            Path relative to ``root``. If it does not exist, ``labs.csv`` is
+            tried instead.
+        codes
+            Lab itemids to keep. All rows are kept when ``None``.
+
+        Returns
+        -------
+        EHRDataset
+            This dataset, for chaining.
+
+        Raises
+        ------
+        EHRValidationError
+            If the file is missing or lacks required columns.
+        ValueError
+            If ``root`` is not set or a value is not numeric.
+        """
         labs = load_labs(self._table_path(filename, fallback="labs.csv"))
         if codes is not None:
             labs = labs[labs["itemid"].astype(str).isin({str(code) for code in codes})]
@@ -112,6 +256,25 @@ class EHRDataset:
         return self
 
     def featurize(self, pipeline: str = "standard") -> EHRDataset:
+        """Build trajectories from the loaded tables, replacing ``trajectories``.
+
+        Does nothing when no tables are loaded.
+
+        Parameters
+        ----------
+        pipeline
+            Featurization pipeline. ``"standard"`` is the only one.
+
+        Returns
+        -------
+        EHRDataset
+            This dataset, for chaining.
+
+        Raises
+        ------
+        ValueError
+            If ``pipeline`` is not ``"standard"``.
+        """
         from ehr2rl.data.featurize import build_state_matrix
 
         if pipeline != "standard":

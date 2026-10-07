@@ -11,7 +11,31 @@ ICU_TABLE = "physionet-data.mimiciv_3_1_icu"
 
 @dataclass(frozen=True)
 class CohortCriteria:
-    """Filters used to define a bounded ICU cohort."""
+    """Filters that define a bounded ICU cohort.
+
+    Bounds are inclusive. ``None`` or an empty tuple means no filter.
+
+    Parameters
+    ----------
+    cohort_size
+        Maximum number of ICU stays. The first stays by ``subject_id``,
+        ``hadm_id``, and ``stay_id`` are taken, not a random sample.
+    min_age
+        Minimum MIMIC-IV ``anchor_age`` in years.
+    max_age
+        Maximum MIMIC-IV ``anchor_age`` in years.
+    admission_types
+        Allowed ``admission_type`` values, such as ``"EW EMER."``.
+    min_icu_los_hours
+        Minimum ICU length of stay in hours.
+    max_icu_los_hours
+        Maximum ICU length of stay in hours.
+
+    Raises
+    ------
+    ValueError
+        If ``cohort_size`` is not positive or a bound is negative.
+    """
 
     cohort_size: int = 25
     min_age: int | None = None
@@ -35,7 +59,23 @@ class CohortCriteria:
 
 @dataclass(frozen=True)
 class BigQueryCohort:
-    """Build parameter-bounded MIMIC-IV v3.1 SQL queries."""
+    """Build bounded MIMIC-IV v3.1 SQL queries for a cohort.
+
+    Every query is restricted to the cohort's ICU stays, and event queries keep
+    only events during those stays.
+
+    Parameters
+    ----------
+    criteria
+        Cohort filters.
+    mimic_version
+        Must be ``"3_1"``.
+
+    Raises
+    ------
+    ValueError
+        If ``mimic_version`` is not ``"3_1"``.
+    """
 
     criteria: CohortCriteria
     mimic_version: str = "3_1"
@@ -45,7 +85,7 @@ class BigQueryCohort:
             raise ValueError("mimic_version must be '3_1' for v0.2 BigQuery cohorts.")
 
     def admissions_sql(self) -> str:
-        """Return admissions rows for the cohort."""
+        """Return SQL for the cohort's admissions rows."""
 
         return f"""
 WITH {self._cohort_cte()}
@@ -62,7 +102,13 @@ ORDER BY a.subject_id, a.hadm_id
 """
 
     def vitals_sql(self, itemids: Iterable[int]) -> str:
-        """Return chartevents rows for cohort stays and selected itemids."""
+        """Return SQL for chartevents rows of the given itemids during cohort stays.
+
+        Parameters
+        ----------
+        itemids
+            Chartevents itemids to select. At least one is required.
+        """
 
         itemid_sql = _itemid_list(itemids)
         return f"""
@@ -83,7 +129,13 @@ ORDER BY ce.subject_id, ce.hadm_id, ce.charttime, ce.itemid
 """
 
     def labs_sql(self, itemids: Iterable[int]) -> str:
-        """Return labevents rows for cohort admissions and selected itemids."""
+        """Return SQL for labevents rows of the given itemids during cohort stays.
+
+        Parameters
+        ----------
+        itemids
+            Labevents itemids to select. At least one is required.
+        """
 
         itemid_sql = _itemid_list(itemids)
         return f"""
@@ -104,7 +156,13 @@ ORDER BY le.subject_id, le.hadm_id, le.charttime, le.itemid
 """
 
     def inputevents_sql(self, itemids: Iterable[int]) -> str:
-        """Return ICU inputevents rows for cohort stays and selected itemids."""
+        """Return SQL for inputevents rows of the given itemids overlapping cohort stays.
+
+        Parameters
+        ----------
+        itemids
+            Inputevents itemids to select. At least one is required.
+        """
 
         itemid_sql = _itemid_list(itemids)
         return f"""

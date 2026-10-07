@@ -30,7 +30,10 @@ nitpicky = True
 # Each entry must be one fully qualified type from an optional dependency
 # (d3rlpy, google-cloud-bigquery) that cannot resolve without that package.
 # Never add regex ignores or ehr2rl.* names: those would hide real breakage.
-nitpick_ignore: list[tuple[str, str]] = []
+nitpick_ignore: list[tuple[str, str]] = [
+    # Return type of ehr2rl.to_d3rlpy; d3rlpy is the optional [d3rlpy] extra.
+    ("py:class", "d3rlpy.dataset.MDPDataset"),
+]
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
@@ -41,6 +44,11 @@ intersphinx_mapping = {
 autodoc_member_order = "bysource"
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
+# Render "Attributes" sections as field lists, so dataclass fields are not
+# documented twice.
+napoleon_use_ivar = True
+# Single backticks in docstrings are cross-references.
+default_role = "py:obj"
 
 html_theme = "furo"
 html_title = f"ehr2rl {release}"

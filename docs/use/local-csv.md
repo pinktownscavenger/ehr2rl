@@ -69,3 +69,7 @@ ds = load_mimiciv_smoke_dataset(
 
 It requires `pip install "ehr2rl[bigquery]"` and applies `maximum_bytes_billed`
 to every query it runs.
+
+```{eval-rst}
+.. autofunction:: ehr2rl.data.load_mimiciv_smoke_dataset
+```
