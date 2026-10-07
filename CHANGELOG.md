@@ -28,6 +28,9 @@ All notable changes to `ehr2rl` will be documented in this file.
 - The BigQuery inputevents query also selects `rateuom` and `patientweight`,
   which changes its cache key, so cached inputevents results are re-queried once.
 - `examples/bigquery_to_d3rlpy.py` trains `DiscreteCQL` instead of `IQL`.
+- `ehr2rl.data.itemid_maps` and `ehr2rl.provenance` define `__all__`, so
+  `import *` from them now brings in only their public names.
+- Export errors about `metadata["action_sizes"]` now say how to fix them.
 
 ### Added
 
@@ -36,6 +39,11 @@ All notable changes to `ehr2rl` will be documented in this file.
 - Trajectories from the BigQuery pipeline and the synthetic generator record
   `metadata["action_sizes"]`; BigQuery trajectories also record
   `metadata["action_names"]`.
+- Documentation site at <https://pinktownscavenger.github.io/ehr2rl/>, with
+  guides, concepts, contributor docs, and an API reference. It is built with
+  Sphinx, MyST, and Furo, deployed from `main` by GitHub Actions, and its
+  external links are checked weekly.
+- Descriptive NumPy-style docstrings for every public API object.
 
 ## 0.2.0 - 2026-09-24
 
