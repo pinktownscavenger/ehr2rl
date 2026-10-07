@@ -26,11 +26,38 @@ def load_mimiciv_smoke_dataset(
     maximum_bytes_billed: int = 25_000_000_000,
     location: str | None = None,
 ) -> EHRDataset:
-    """Load a small credentialed MIMIC-IV cohort from BigQuery.
+    """Load a small credentialed MIMIC-IV cohort from BigQuery (legacy).
 
-    The loader uses only bounded cohort queries and applies BigQuery's
-    ``maximum_bytes_billed`` guard to every query. It is intended for smoke
-    validation, not for producing a research cohort.
+    The loader runs three bounded queries (admissions, a fixed set of vitals,
+    and a fixed set of labs) and builds trajectories the same way as the local
+    CSV path. It is intended for checking credentialed access, not for
+    producing a research cohort; use `ehr2rl.bigquery.load_mimiciv_bigquery_dataset`
+    for that.
+
+    Parameters
+    ----------
+    billing_project
+        Google Cloud project billed for the queries.
+    cohort_size
+        Maximum number of ICU stays. Must be positive.
+    maximum_bytes_billed
+        Byte cap applied to every query. Must be positive.
+    location
+        BigQuery location, if the client needs one.
+
+    Returns
+    -------
+    EHRDataset
+        Trajectories with ``metadata["bigquery_source"]`` describing the run.
+
+    Raises
+    ------
+    ImportError
+        If the ``bigquery`` extra is not installed.
+    ValueError
+        If ``cohort_size`` or ``maximum_bytes_billed`` is not positive.
+    RuntimeError
+        If the queries return no trajectories.
     """
 
     if cohort_size <= 0:

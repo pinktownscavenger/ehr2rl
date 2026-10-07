@@ -13,7 +13,36 @@ def make_synthetic_dataset(
     seed: int = 42,
     include_medication_metadata: bool = False,
 ) -> EHRDataset:
-    """Create a deterministic synthetic dataset with plausible clinical ranges."""
+    """Create a deterministic synthetic dataset with plausible ICU value ranges.
+
+    Each trajectory has hourly steps and four state features: heart rate, mean
+    blood pressure, lactate, and creatinine. About 20% of patients die. The data
+    are for development and testing, not for drawing clinical conclusions.
+
+    Parameters
+    ----------
+    n_patients
+        Number of trajectories. Must be positive.
+    trajectory_length
+        Timesteps per trajectory. Must be greater than 1.
+    seed
+        Random seed. The same seed always gives the same data.
+    include_medication_metadata
+        If ``True``, actions have two columns, ``vasopressor_bin`` and
+        ``fluid_bin``, matching the BigQuery medication actions. Otherwise
+        actions are one binary column.
+
+    Returns
+    -------
+    EHRDataset
+        Trajectories with zero rewards and metadata ``died``,
+        ``feature_names``, ``sofa_scores``, and ``action_sizes``.
+
+    Raises
+    ------
+    ValueError
+        If ``n_patients`` or ``trajectory_length`` is out of range.
+    """
 
     if n_patients <= 0:
         raise ValueError("n_patients must be positive.")

@@ -14,16 +14,47 @@ from ehr2rl.data.dataset import EHRDataset
 
 
 class BehaviorPolicy:
-    """Estimate observed action probabilities from states."""
+    """Estimate the probability of each observed action given the state.
+
+    Only the first action column is modeled. Integer actions with at most
+    ``n_action_bins`` distinct values are used as classes directly; other
+    actions are split into at most ``n_action_bins`` quantile bins.
+
+    Parameters
+    ----------
+    n_action_bins
+        Maximum number of action classes.
+    random_state
+        Seed for the classifier.
+    """
 
     def __init__(self, n_action_bins: int = 5, random_state: int = 42) -> None:
-        # TODO(v0.2): replace placeholder actions with real medication actions.
         self.n_action_bins = n_action_bins
         self.random_state = random_state
         self.discretizer: KBinsDiscretizer | None = None
         self.model: Any | None = None
 
     def fit(self, dataset: EHRDataset) -> BehaviorPolicy:
+        """Fit the policy on every timestep of a dataset.
+
+        Trains a standardized multinomial logistic regression, or a constant
+        classifier when only one action class is observed.
+
+        Parameters
+        ----------
+        dataset
+            Non-empty dataset.
+
+        Returns
+        -------
+        BehaviorPolicy
+            This policy, for chaining.
+
+        Raises
+        ------
+        ValueError
+            If the dataset is empty.
+        """
         states, actions = self._stack(dataset)
         labels = self._labels_from_actions(actions, fit=True)
 
@@ -42,11 +73,48 @@ class BehaviorPolicy:
         return self
 
     def predict_proba(self, states: np.ndarray) -> np.ndarray:
+        """Return the probability of each action class for each state.
+
+        Parameters
+        ----------
+        states
+            Shape ``(N, D)``.
+
+        Returns
+        -------
+        numpy.ndarray
+            Shape ``(N, n_classes)``. Columns follow ``model.classes_``.
+
+        Raises
+        ------
+        ValueError
+            If the policy has not been fit.
+        """
         if self.model is None:
             raise ValueError("BehaviorPolicy must be fit before predict_proba().")
         return self.model.predict_proba(np.asarray(states, dtype=float))
 
     def propensity_scores(self, dataset: EHRDataset) -> np.ndarray:
+        """Return the probability of the action actually taken at each timestep.
+
+        An action class not seen during `fit` gets the first class's
+        probability.
+
+        Parameters
+        ----------
+        dataset
+            Dataset to score, with the same action encoding used for fitting.
+
+        Returns
+        -------
+        numpy.ndarray
+            Shape ``(N,)``, where ``N`` is the total number of timesteps.
+
+        Raises
+        ------
+        ValueError
+            If the policy has not been fit or the dataset is empty.
+        """
         if self.model is None:
             raise ValueError("BehaviorPolicy must be fit before propensity_scores().")
         states, actions = self._stack(dataset)

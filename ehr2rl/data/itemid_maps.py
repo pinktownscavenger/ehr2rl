@@ -11,12 +11,30 @@ import pandas as pd
 
 from ehr2rl.data.loaders import EHRValidationError
 
+__all__ = ["ItemIdEntry", "ItemIdMap", "load_itemid_map", "validate_itemid_map"]
+
 ItemSource = Literal["chartevents", "labevents", "inputevents"]
 
 
 @dataclass(frozen=True)
 class ItemIdEntry:
-    """One raw MIMIC itemid mapped to a canonical concept."""
+    """One raw MIMIC-IV itemid mapped to a canonical concept.
+
+    Parameters
+    ----------
+    itemid
+        MIMIC-IV itemid.
+    source
+        Table the itemid comes from: ``"chartevents"``, ``"labevents"``, or
+        ``"inputevents"``.
+    unit
+        Recorded unit, for reference.
+    label
+        Expected label in ``d_items`` or ``d_labitems``, checked by
+        `validate_itemid_map` when set.
+    conversion
+        Name of an intended unit conversion. Informational only; not applied.
+    """
 
     itemid: int
     source: ItemSource
@@ -27,7 +45,15 @@ class ItemIdEntry:
 
 @dataclass(frozen=True)
 class ItemIdMap:
-    """A versioned mapping from canonical concepts to raw itemids."""
+    """A versioned mapping from canonical concepts to raw itemids.
+
+    Parameters
+    ----------
+    version
+        Map version, such as ``"v3_1"``, recorded in provenance.
+    concepts
+        Itemid entries for each concept name.
+    """
 
     version: str
     concepts: dict[str, list[ItemIdEntry]]
@@ -37,7 +63,23 @@ def load_itemid_map(
     version: str = "v3_1",
     path: str | Path | None = None,
 ) -> ItemIdMap:
-    """Load a built-in or user-supplied itemid map."""
+    """Load a built-in or user-supplied itemid map.
+
+    Map files are JSON with a ``version`` string and a ``concepts`` object that
+    maps each concept name to a list of entries with `ItemIdEntry` fields.
+
+    Parameters
+    ----------
+    version
+        Built-in map to load. Only ``"v3_1"`` ships with the package.
+    path
+        A map file to load instead. ``version`` is ignored when it is given.
+
+    Raises
+    ------
+    EHRValidationError
+        If ``version`` names no built-in map.
+    """
 
     map_path = Path(path) if path is not None else _builtin_map_path(version)
     with map_path.open(encoding="utf-8") as handle:
@@ -51,7 +93,25 @@ def load_itemid_map(
 
 
 def validate_itemid_map(itemid_map: ItemIdMap, labels: pd.DataFrame) -> None:
-    """Validate mapped itemids against live MIMIC label tables."""
+    """Check every itemid in a map against live MIMIC-IV labels.
+
+    Labels are compared case-insensitively with whitespace collapsed. Entries
+    without an expected ``label`` only need to exist.
+
+    Parameters
+    ----------
+    itemid_map
+        Map to check. Every concept is checked, not only those in a preset.
+    labels
+        Rows from ``d_items`` and ``d_labitems`` with ``itemid`` and
+        ``label`` columns.
+
+    Raises
+    ------
+    EHRValidationError
+        If ``labels`` lacks a required column, an itemid is missing, or a label
+        differs.
+    """
 
     required = {"itemid", "label"}
     missing_columns = required - set(labels.columns)

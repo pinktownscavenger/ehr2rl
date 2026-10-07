@@ -9,7 +9,7 @@ import pandas as pd
 
 
 class EHRValidationError(ValueError):
-    """Raised when an input EHR table does not match the expected schema."""
+    """Raised when input tables, an itemid map, or a feature preset is invalid."""
 
 
 ADMISSIONS_COLUMNS = {

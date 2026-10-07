@@ -10,6 +10,7 @@ Thumbs.db
 # Python environments and caches
 venv/
 .venv/
+.venv-docs/
 env/
 __pycache__/
 *.py[cod]
@@ -23,6 +24,7 @@ d3rlpy_logs/
 # Build and packaging output
 build/
 dist/
+/docs/_build/
 *.egg-info/
 
 # Notebook and local data artifacts

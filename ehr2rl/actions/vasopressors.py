@@ -12,8 +12,16 @@ import pandas as pd
 class VasopressorConversion:
     """Conversion factor for norepinephrine-equivalent dose.
 
-    ``factor`` converts a rate expressed in ``rate_unit`` into norepinephrine
-    mcg/kg/min.
+    Parameters
+    ----------
+    name
+        Drug name, used in error messages.
+    itemids
+        MIMIC-IV inputevents itemids for the drug.
+    factor
+        Multiplier from a rate in ``rate_unit`` to norepinephrine mcg/kg/min.
+    rate_unit
+        Unit ``factor`` applies to. Recorded rates are converted to it first.
     """
 
     name: str
@@ -22,6 +30,9 @@ class VasopressorConversion:
     rate_unit: str = "mcg/kg/min"
 
 
+#: Built-in conversions for norepinephrine, epinephrine, vasopressin,
+#: phenylephrine, and dopamine. Factors follow a common research convention and
+#: are not a clinical standard.
 DEFAULT_NEE_CONVERSIONS: tuple[VasopressorConversion, ...] = (
     VasopressorConversion("norepinephrine", (221906,), 1.0),
     VasopressorConversion("epinephrine", (221289,), 1.0),
@@ -49,8 +60,28 @@ def norepinephrine_equivalent(
 
     The row's ``rateuom`` is converted to the conversion's ``rate_unit`` before
     ``factor`` is applied. Rows without ``rateuom`` are assumed to already be in
-    ``rate_unit``. Raises ``ValueError`` for a vasopressor row whose unit cannot
-    be converted, rather than returning a dose in the wrong unit.
+    ``rate_unit``.
+
+    Parameters
+    ----------
+    row
+        One inputevents row with ``itemid`` and ``rate``, and optionally
+        ``rateuom`` and ``patientweight``.
+    conversions
+        Conversions to match ``itemid`` against.
+
+    Returns
+    -------
+    float
+        Dose in norepinephrine mcg/kg/min. ``0.0`` for non-vasopressor rows and
+        rows without a numeric rate.
+
+    Raises
+    ------
+    ValueError
+        If a vasopressor row's unit cannot be converted, or a per-minute rate
+        has no positive ``patientweight``. This is raised rather than returning
+        a dose in the wrong unit.
     """
 
     itemid = int(row.get("itemid", -1))

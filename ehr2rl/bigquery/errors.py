@@ -10,4 +10,9 @@ class BudgetExceededError(BigQueryError):
 
 
 class BigQueryAuthError(BigQueryError):
-    """Raised when BigQuery authentication or permission checks fail."""
+    """Raised when a BigQuery dry run or query fails.
+
+    Despite the name, this covers every failure from the BigQuery client,
+    including invalid SQL, timeouts, and network errors, not only
+    authentication and permissions.
+    """

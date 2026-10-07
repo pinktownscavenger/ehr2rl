@@ -11,7 +11,20 @@ from ehr2rl.reward.base import BaseReward
 
 
 class CompositeReward(BaseReward):
-    """Weighted sum of multiple reward functions."""
+    """Weighted sum of other reward functions.
+
+    Parameters
+    ----------
+    components
+        ``(reward, weight)`` pairs. At least one is required.
+
+    Raises
+    ------
+    ValueError
+        If ``components`` is empty.
+    TypeError
+        If a component is not a `~ehr2rl.reward.BaseReward`.
+    """
 
     def __init__(self, components: Sequence[tuple[BaseReward, float]]) -> None:
         if not components:
@@ -24,6 +37,23 @@ class CompositeReward(BaseReward):
         self.components = tuple(normalized)
 
     def compute(self, trajectory: PatientTrajectory) -> np.ndarray:
+        """Return the weighted sum of every component's rewards.
+
+        Parameters
+        ----------
+        trajectory
+            Trajectory with whatever metadata the components need.
+
+        Returns
+        -------
+        numpy.ndarray
+            Shape ``(T,)``.
+
+        Raises
+        ------
+        ValueError
+            If a component returns the wrong shape.
+        """
         total = np.zeros(trajectory.n_steps, dtype=float)
         expected_shape = (trajectory.n_steps,)
         for reward, weight in self.components:

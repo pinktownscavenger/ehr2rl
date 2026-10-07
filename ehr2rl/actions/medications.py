@@ -14,7 +14,19 @@ from ehr2rl.actions.vasopressors import norepinephrine_equivalent
 
 @dataclass(frozen=True)
 class ActionConfig:
-    """Configuration for medication-derived action construction."""
+    """Configuration for medication-derived actions.
+
+    Parameters
+    ----------
+    vasopressor_bins
+        Bins for norepinephrine-equivalent dose in mcg/kg/min.
+    fluid_bins
+        Bins for IV fluid volume in mL per timestep.
+    timestep
+        Aggregation window, as a pandas frequency string.
+    status_include
+        ``statusdescription`` values to keep. Other rows are ignored.
+    """
 
     vasopressor_bins: DoseBins
     fluid_bins: DoseBins
@@ -34,6 +46,27 @@ def build_medication_actions(
     per timestep so short high-intensity infusion intervals are not diluted.
     Fluid exposure is allocated by overlap duration when an event spans multiple
     timesteps, so one recorded amount is not counted in full more than once.
+
+    Parameters
+    ----------
+    inputevents
+        Rows with ``starttime``, ``endtime``, ``itemid``, ``rate``, and
+        ``amount``, and optionally ``rateuom``, ``patientweight``, and
+        ``statusdescription``.
+    timestamps
+        Shape ``(T,)``. State times in Unix seconds.
+    config
+        Bins and aggregation settings.
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape ``(T, 2)`` integer array of ``(vasopressor_bin, fluid_bin)``.
+
+    Raises
+    ------
+    ValueError
+        If a vasopressor row's rate unit cannot be converted.
     """
 
     bins = _timestamp_bins(timestamps, config.timestep)
