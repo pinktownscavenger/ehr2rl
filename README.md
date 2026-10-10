@@ -31,33 +31,48 @@ behavior, and exporting data for tools such as `d3rlpy`.
 - Generate synthetic MIMIC-IV-style data for development and testing without
   credentialed access.
 
+## Architecture
+
+![ehr2rl architecture: data sources load into an EHRDataset of patient trajectories, which rewards and a behavior policy shape before export to d3rlpy](https://raw.githubusercontent.com/pinktownscavenger/ehr2rl/main/docs/_static/diagrams/architecture.png)
+
+Every source produces the same `EHRDataset`, a list of `PatientTrajectory`
+objects with aligned per-timestep arrays:
+
+| Field | Shape | Meaning |
+|---|---|---|
+| `states` | `(T, D)` float | Hourly clinical features; names in `metadata["feature_names"]` |
+| `actions` | `(T, A)` | Treatment per step; medication actions are `[vasopressor_bin, fluid_bin]` |
+| `rewards` | `(T,)` float | Filled in by a reward's `shape()` |
+| `terminals` | `(T,)` bool | `True` on the last step of the episode |
+| `metadata` | dict | `died`, `feature_names`, `action_names`, `action_sizes`, `provenance`, … |
+
+Module map:
+
+| Module | What it does | Main entry points |
+|---|---|---|
+| `ehr2rl.bigquery` | Budget-guarded MIMIC-IV v3.1 cohort queries | `GuardedBigQueryClient`, `BigQueryCohort`, `load_mimiciv_bigquery_dataset` |
+| `ehr2rl.data` | Dataset model, itemid maps, feature presets, legacy CSV loading | `EHRDataset`, `PatientTrajectory`, `load_itemid_map`, `get_feature_preset` |
+| `ehr2rl.actions` | Vasopressor and fluid actions from ICU input events | `ActionConfig`, `DoseBins`, `build_medication_actions` |
+| `ehr2rl.reward` | Swappable reward functions | `MortalityReward`, `SofaReward`, `ReadmissionReward`, `CompositeReward` |
+| `ehr2rl.policy` | Estimate the observed clinician policy | `BehaviorPolicy` |
+| `ehr2rl.export` | Training-ready datasets for `d3rlpy` | `to_d3rlpy` |
+| `ehr2rl.provenance` | JSON sidecar describing where a dataset came from | `write_provenance`, `read_provenance` |
+| `ehr2rl.testing` | Synthetic MIMIC-IV-style data | `make_synthetic_dataset` |
+
+See [the pipeline concepts page](https://pinktownscavenger.github.io/ehr2rl/concepts/pipeline.html) for more detail.
+
 ## Installation
 
 `ehr2rl` targets Python 3.10+.
 
-Minimal install:
+Install the extras for the paths you need:
 
-```bash
-pip install ehr2rl
-```
-
-For `d3rlpy` export:
-
-```bash
-pip install "ehr2rl[d3rlpy]"
-```
-
-For credentialed MIMIC-IV BigQuery pipelines and smoke tests:
-
-```bash
-pip install "ehr2rl[bigquery]"
-```
-
-For the full BigQuery-to-`d3rlpy` example:
-
-```bash
-pip install "ehr2rl[all]"
-```
+| Install | Adds | Use it for |
+|---|---|---|
+| `pip install ehr2rl` | NumPy, pandas, scikit-learn, SciPy | Synthetic data, rewards, behavior policy |
+| `pip install "ehr2rl[d3rlpy]"` | `d3rlpy` | `to_d3rlpy` export and offline RL training |
+| `pip install "ehr2rl[bigquery]"` | Google Cloud BigQuery client, `pyarrow`, `db-dtypes` | Credentialed MIMIC-IV v3.1 pipelines and smoke tests |
+| `pip install "ehr2rl[all]"` | Both of the above | The full BigQuery-to-`d3rlpy` example |
 
 ## Quickstart
 
@@ -165,6 +180,30 @@ from ehr2rl import to_d3rlpy
 mdp_dataset = to_d3rlpy(ds, provenance_path="dataset.provenance.json")
 ```
 
+## Rewards
+
+Each reward implements `compute(trajectory)` and `shape(dataset)`, and
+`shape()` returns a new dataset with rewards filled in.
+
+| Reward | Signal | Needs in `metadata` |
+|---|---|---|
+| `MortalityReward` | `+1` survival or `-1` death at the terminal step | `died` |
+| `SofaReward` | Per-step SOFA improvement, clipped to `[-5, 5]` | `sofa_scores` |
+| `ReadmissionReward` | `+1` / `-1` for 30-day readmission at the terminal step; `NaN` when censored | `readmitted_within_30_days` |
+| `CompositeReward` | Weighted sum of other rewards | Whatever its components need |
+
+BigQuery trajectories include `died`, so `MortalityReward` works on them
+directly. `sofa_scores` and `readmitted_within_30_days` must be added by the
+researcher. Synthetic trajectories include `died` and `sofa_scores`. See
+[reward semantics](https://pinktownscavenger.github.io/ehr2rl/concepts/reward-semantics.html).
+
+```python
+from ehr2rl import CompositeReward, MortalityReward, SofaReward
+
+reward = CompositeReward([(MortalityReward(), 1.0), (SofaReward(), 0.1)])
+ds = reward.shape(ds)
+```
+
 ## Development Install
 
 ```bash
@@ -224,7 +263,7 @@ Future priorities:
 
 - Minari export.
 - Standalone pre-flight validation.
-- CLI tooling and a documentation site.
+- CLI tooling.
 - Additional dataset families such as eICU, MIMIC-III, and OMOP-CDM.
 
 ## Contributing
