@@ -87,6 +87,27 @@ API pages are curated, not generated recursively. To document a public object:
 `docs/tests/test_site.py` fails if the rendered objects differ from
 `PUBLIC_API` in either direction.
 
+## Site behavior
+
+`docs/_static/site.js` adds three behaviors on top of Furo without changing its
+markup:
+
+- **In-place navigation.** Links to other pages swap the article, footer, and
+  "On this page" contents instead of reloading, so the left sidebar keeps its
+  place. The search and index pages, files under `_static/`, and anything that
+  fails to load fall back to a normal page load.
+- **Live search.** The sidebar search box shows the top results while typing,
+  using Sphinx's own index and ranking (`Search._parseQuery` and
+  `Search._performSearch` from `searchtools.js`). Enter still opens the full
+  search page. `docs/tests/test_site.py` fails if a Sphinx upgrade removes
+  those functions.
+- **"On this page" tracking.** Marks the section being read. It replaces
+  Furo's tracker, which only follows the first page loaded.
+
+Animations live in `docs/_static/custom.css` and are switched off for readers
+who prefer reduced motion. Check behavior changes in a browser at desktop and
+phone widths, in light and dark mode: the build cannot test JavaScript.
+
 ## Tests and CI
 
 ```bash

@@ -43,6 +43,8 @@ All notable changes to `ehr2rl` will be documented in this file.
   guides, concepts, contributor docs, and an API reference. It is built with
   Sphinx, MyST, and Furo, deployed from `main` by GitHub Actions, and its
   external links are checked weekly.
+- The documentation site navigates between pages without reloading, shows
+  search results while typing, and tracks the section being read.
 - Descriptive NumPy-style docstrings for every public API object.
 
 ## 0.2.0 - 2026-09-24

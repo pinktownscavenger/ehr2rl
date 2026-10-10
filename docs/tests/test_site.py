@@ -191,3 +191,36 @@ def test_build_does_not_need_network(tmp_path: Path) -> None:
         env=env,
     )
     assert result.returncode == 0, result.stderr[-2000:]
+
+
+def test_site_script_loads_deferred_on_every_page(built_site: Path) -> None:
+    import re
+
+    pages = [p for p in built_site.rglob("*.html") if "_static" not in p.parts]
+    assert pages
+    for page in pages:
+        html = page.read_text("utf-8")
+        tags = [t for t in re.findall(r"<script[^>]*>", html) if "_static/site.js" in t]
+        assert len(tags) == 1 and "defer" in tags[0], (
+            f"{page.relative_to(built_site)} does not load site.js deferred"
+        )
+
+
+def test_live_search_relies_only_on_existing_sphinx_search_api(built_site: Path) -> None:
+    """site.js calls these searchtools.js members; fail loudly if Sphinx renames them."""
+    searchtools = (built_site / "_static" / "searchtools.js").read_text("utf-8")
+    for member in ("_parseQuery:", "_performSearch:", "setIndex:", "hasIndex:"):
+        assert member in searchtools, f"searchtools.js no longer defines {member}"
+    for asset in ("searchindex.js", "_static/language_data.js"):
+        assert (built_site / asset).is_file()
+
+
+def test_target_headings_are_not_highlighted(built_site: Path) -> None:
+    html = (built_site / "index.html").read_text("utf-8")
+    assert html.count("--color-highlight-on-target: transparent") >= 2  # light and dark
+
+
+def test_motion_respects_reduced_motion_preference() -> None:
+    css = (DOCS_DIR / "_static" / "custom.css").read_text(encoding="utf-8")
+    assert "@media (prefers-reduced-motion: reduce)" in css
+    assert "@keyframes" in css
