@@ -61,6 +61,8 @@ html_title = f"ehr2rl {release}"
 pygments_dark_style = "github-dark"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+# In-place navigation, live search, and "On this page" tracking.
+html_js_files = [("site.js", {"defer": "defer"})]
 
 # One muted clinical-green accent. Both values meet WCAG AA (>= 4.5:1) against
 # Furo's page and secondary backgrounds in their appearance.
@@ -74,6 +76,8 @@ html_theme_options = {
         "color-brand-primary": "#2b6a52",
         "color-brand-content": "#2b6a52",
         "color-brand-visited": "#2b6a52",
+        # No background on a heading reached through a link.
+        "color-highlight-on-target": "transparent",
         "font-stack": _system_fonts,
         "font-stack--monospace": _mono_fonts,
     },
@@ -81,6 +85,7 @@ html_theme_options = {
         "color-brand-primary": "#7cc5a5",
         "color-brand-content": "#7cc5a5",
         "color-brand-visited": "#7cc5a5",
+        "color-highlight-on-target": "transparent",
     },
     "source_repository": "https://github.com/pinktownscavenger/ehr2rl/",
     "source_branch": "main",
