@@ -282,7 +282,7 @@ issue with the table name and column is especially helpful.
   author  = {Bilal Malik},
   title   = {ehr2rl: Bridging MIMIC-IV and Offline Reinforcement Learning},
   year    = {2026},
-  version = {0.2.0},
+  version = {0.2.1},
   url     = {https://github.com/pinktownscavenger/ehr2rl}
 }
 ```

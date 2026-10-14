@@ -2,7 +2,7 @@
 
 All notable changes to `ehr2rl` will be documented in this file.
 
-## Unreleased
+## 0.2.1 - 2026-10-13
 
 ### Fixed
 
